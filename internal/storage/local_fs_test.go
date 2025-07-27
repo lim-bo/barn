@@ -16,7 +16,8 @@ func TestLocalFS(t *testing.T) {
 	data := bytes.NewReader(content)
 	bucket := "test_bucket"
 	key := "message.txt"
-	assert.NoError(t, lfs.CreateBucket(context.Background(), bucket))
+	bucketLfs := storage.NewBucketLocalFS("../../data")
+	assert.NoError(t, bucketLfs.CreateBucket(context.Background(), bucket))
 	t.Run("object saved", func(t *testing.T) {
 		err := lfs.SaveObject(context.Background(), bucket, key, data)
 		assert.NoError(t, err)
@@ -54,5 +55,5 @@ func TestLocalFS(t *testing.T) {
 		err := lfs.DeleteObject(context.Background(), bucket, key)
 		assert.Error(t, err)
 	})
-	assert.NoError(t, lfs.DeleteBucket(context.Background(), bucket))
+	assert.NoError(t, bucketLfs.DeleteBucket(context.Background(), bucket))
 }

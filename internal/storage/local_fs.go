@@ -62,7 +62,17 @@ func (lfs *LocalFS) StatObject(ctx context.Context, bucket string, key string) (
 	}, nil
 }
 
-func (lfs *LocalFS) CreateBucket(ctx context.Context, bucket string) error {
+type BucketLocalFS struct {
+	basePath string
+}
+
+func NewBucketLocalFS(root string) *BucketLocalFS {
+	return &BucketLocalFS{
+		basePath: root,
+	}
+}
+
+func (lfs *BucketLocalFS) CreateBucket(ctx context.Context, bucket string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -70,7 +80,7 @@ func (lfs *LocalFS) CreateBucket(ctx context.Context, bucket string) error {
 	return os.MkdirAll(path, 0755)
 }
 
-func (lfs *LocalFS) DeleteBucket(ctx context.Context, bucket string) error {
+func (lfs *BucketLocalFS) DeleteBucket(ctx context.Context, bucket string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
