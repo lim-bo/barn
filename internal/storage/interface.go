@@ -21,6 +21,9 @@ type ObjectStorage interface {
 	GetObject(ctx context.Context, bucket, key string) (io.ReadCloser, error)
 	DeleteObject(ctx context.Context, bucket, key string) error
 	StatObject(ctx context.Context, bucket string, key string) (ObjectMetadata, error)
+
+	CreateBucket(ctx context.Context, bucket string) error
+	DeleteBucket(ctx context.Context, bucket string) error
 }
 
 type MultipartStorage interface {

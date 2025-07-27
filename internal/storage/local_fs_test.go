@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"os"
 	"testing"
 
 	"github.com/lim-bo/barn/internal/storage"
@@ -12,15 +11,12 @@ import (
 )
 
 func TestLocalFS(t *testing.T) {
-	err := os.Mkdir("../../data/test_bucket", os.ModeDir)
-	if err != nil {
-		t.Fatal(err)
-	}
 	lfs := storage.NewLocalFS("../../data")
 	content := []byte("hello world")
 	data := bytes.NewReader(content)
 	bucket := "test_bucket"
 	key := "message.txt"
+	assert.NoError(t, lfs.CreateBucket(context.Background(), bucket))
 	t.Run("object saved", func(t *testing.T) {
 		err := lfs.SaveObject(context.Background(), bucket, key, data)
 		assert.NoError(t, err)
@@ -58,5 +54,5 @@ func TestLocalFS(t *testing.T) {
 		err := lfs.DeleteObject(context.Background(), bucket, key)
 		assert.Error(t, err)
 	})
-	os.Remove("../../data/" + bucket)
+	assert.NoError(t, lfs.DeleteBucket(context.Background(), bucket))
 }
