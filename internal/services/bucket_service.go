@@ -1,0 +1,92 @@
+package services
+
+import (
+	"context"
+	"log/slog"
+
+	"github.com/google/uuid"
+	"github.com/lim-bo/barn/internal/errvalues"
+	"github.com/lim-bo/barn/internal/services/pb"
+	"github.com/lim-bo/barn/pkg/models"
+)
+
+type BucketService struct {
+	br BucketsRepositoryI
+
+	pb.UnimplementedBucketServiceServer
+}
+
+type BucketsRepositoryI interface {
+	CreateBucket(ownerId uuid.UUID, bucket string) (*models.Bucket, error)
+	DeleteBucket(ownerId uuid.UUID, bucket string) error
+	ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket, error)
+}
+
+func NewBucketService(br BucketsRepositoryI) *BucketService {
+	return &BucketService{
+		br: br,
+	}
+}
+
+func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketRequest) (*pb.CreateBucketResponse, error) {
+	reqID := ctx.Value("Request-ID").(string)
+	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
+	if err != nil {
+		slog.Error("create bucket request with invalid uid", slog.String("req_id", reqID))
+		return nil, errvalues.ErrInvalidUID
+	}
+	bucket, err := bs.br.CreateBucket(ownerID, req.Name)
+	if err != nil {
+		slog.Error("error creating bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+		return nil, err
+	}
+	slog.Info("successfully created bucket", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+	return &pb.CreateBucketResponse{
+		Bucket: &pb.Bucket{
+			Id:        bucket.ID.String(),
+			Name:      bucket.Name,
+			OwnerId:   bucket.OwnerID.String(),
+			CreatedAt: bucket.CreatedAt.String(),
+		},
+	}, nil
+}
+
+func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketRequest) (*pb.DeleteBucketResponse, error) {
+	reqID := ctx.Value("Request-ID").(string)
+	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
+	if err != nil {
+		return nil, errvalues.ErrInvalidUID
+	}
+	err = bs.br.DeleteBucket(ownerID, req.Name)
+	if err != nil {
+		slog.Error("error deleting bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+		return nil, err
+	}
+	slog.Info("bucket deleted", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+	return nil, nil
+}
+
+func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBucketsRequest) (*pb.ListAllBucketsResponse, error) {
+	reqID := ctx.Value("Request-ID").(string)
+	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
+	if err != nil {
+		return nil, errvalues.ErrInvalidUID
+	}
+	buckets, err := bs.br.ListAllBuckets(ownerID)
+	if err != nil {
+		slog.Error("error listing buckets", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+		return nil, nil
+	}
+	result := make([]*pb.Bucket, 0, len(buckets))
+	for _, b := range buckets {
+		result = append(result, &pb.Bucket{
+			Id:        b.ID.String(),
+			Name:      b.Name,
+			OwnerId:   b.OwnerID.String(),
+			CreatedAt: b.CreatedAt.String(),
+		})
+	}
+	return &pb.ListAllBucketsResponse{
+		Buckets: result,
+	}, nil
+}

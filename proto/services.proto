@@ -1,0 +1,52 @@
+syntax = "proto3";
+package s3;
+import "google/api/annotations.proto";
+option go_package = "github.com/lim-bo/barn/internal/services/pb";
+// Messages
+message Bucket {
+    string id = 1;
+    string name = 2;
+    string owner_id = 3;
+    string created_at = 4;
+}
+
+// Services
+service BucketService {
+
+    rpc CreateBucket(CreateBucketRequest) returns (CreateBucketResponse) {
+        option (google.api.http) = {
+            put: "/{name}"
+        };
+    }
+
+    rpc ListAllBuckets(ListAllBucketsRequest) returns (ListAllBucketsResponse) {
+        option (google.api.http) = {
+            get: "/"
+        };
+    }
+    rpc DeleteBucket(DeleteBucketRequest) returns (DeleteBucketResponse) {
+        option (google.api.http) = {
+            delete: "/{name}"
+        };
+    }
+}
+
+message ListAllBucketsRequest {}
+
+message ListAllBucketsResponse {
+    repeated Bucket buckets = 1;
+}
+
+message CreateBucketRequest {
+    string name = 1;
+}
+
+message CreateBucketResponse {
+    Bucket bucket = 1;
+}
+
+message DeleteBucketRequest {
+    string name = 1;
+}
+
+message DeleteBucketResponse {}
