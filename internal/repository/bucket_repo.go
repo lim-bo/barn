@@ -144,3 +144,14 @@ func (br *BucketsRepository) ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket
 	}
 	return result, nil
 }
+
+func (br *BucketsRepository) CheckExist(ownerID uuid.UUID, bucket string) (bool, error) {
+	var exist bool
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	err := br.conn.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM buckets WHERE owner_id = $1 AND name = $2);`, ownerID, bucket).Scan(&exist)
+	if err != nil {
+		return false, errors.New("checking bucket's existion error: " + err.Error())
+	}
+	return exist, nil
+}

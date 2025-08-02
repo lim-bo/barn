@@ -164,9 +164,19 @@ func TestIntegrational(t *testing.T) {
 			t.Log("bucket created: ", b)
 		}
 	})
+	t.Run("check exist -> true", func(t *testing.T) {
+		ok, err := br.CheckExist(ownerID, fmt.Sprintf("%s_%d", bucket, 0))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
 	t.Run("deleting bucket", func(t *testing.T) {
 		err := br.DeleteBucket(ownerID, fmt.Sprintf("%s_%d", bucket, 3))
 		assert.NoError(t, err)
+	})
+	t.Run("check exist -> false", func(t *testing.T) {
+		ok, err := br.CheckExist(ownerID, fmt.Sprintf("%s_%d", bucket, 3))
+		assert.NoError(t, err)
+		assert.False(t, ok)
 	})
 	t.Run("listing bucket", func(t *testing.T) {
 		buckets, err := br.ListAllBuckets(ownerID)
