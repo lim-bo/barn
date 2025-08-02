@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lim-bo/barn/internal/cleanup"
 	"github.com/lim-bo/barn/internal/errvalues"
 	"github.com/lim-bo/barn/pkg/models"
 )
@@ -50,6 +51,13 @@ func NewBucketRepo(cfg *DBConfig) *BucketsRepository {
 	if err != nil {
 		log.Fatal("ping error: " + err.Error())
 	}
+	cleanup.Register(&cleanup.Job{
+		Name: "closing psql conn",
+		Func: func() error {
+			p.Close()
+			return nil
+		},
+	})
 	return &BucketsRepository{
 		conn: p,
 	}

@@ -17,7 +17,7 @@ type Config struct {
 
 func GetConfig() *Config {
 	once.Do(func() {
-		viper.AddConfigPath("../../config")
+		viper.AddConfigPath("./config")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("cfg")
 		err := viper.ReadInConfig()
