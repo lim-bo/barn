@@ -7,11 +7,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/lim-bo/barn/internal/errvalues"
 	"github.com/lim-bo/barn/internal/services/pb"
+	"github.com/lim-bo/barn/internal/storage"
 	"github.com/lim-bo/barn/pkg/models"
 )
 
 type BucketService struct {
-	br BucketsRepositoryI
+	br            BucketsRepositoryI
+	storageEngine storage.BucketStorage
 
 	pb.UnimplementedBucketServiceServer
 }
@@ -22,9 +24,10 @@ type BucketsRepositoryI interface {
 	ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket, error)
 }
 
-func NewBucketService(br BucketsRepositoryI) *BucketService {
+func NewBucketService(br BucketsRepositoryI, bucketStorage storage.BucketStorage) *BucketService {
 	return &BucketService{
-		br: br,
+		br:            br,
+		storageEngine: bucketStorage,
 	}
 }
 
@@ -40,6 +43,13 @@ func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketR
 		slog.Error("error creating bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, err
 	}
+	go func() {
+		err := bs.storageEngine.CreateBucket(context.Background(), req.Name)
+		if err != nil {
+			slog.Error("error created bucket in storage", slog.String("error", err.Error()), slog.String("req_id", reqID),
+				slog.String("uid", ownerID.String()))
+		}
+	}()
 	slog.Info("successfully created bucket", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 	return &pb.CreateBucketResponse{
 		Bucket: &pb.Bucket{
@@ -62,6 +72,12 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 		slog.Error("error deleting bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, err
 	}
+	go func() {
+		err := bs.storageEngine.DeleteBucket(context.Background(), req.Name)
+		if err != nil {
+			slog.Error("error deleting bucket from storage", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+		}
+	}()
 	slog.Info("bucket deleted", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 	return nil, nil
 }

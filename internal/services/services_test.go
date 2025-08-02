@@ -14,6 +14,7 @@ import (
 	repos "github.com/lim-bo/barn/internal/repository"
 	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/internal/services/pb"
+	"github.com/lim-bo/barn/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -34,10 +35,10 @@ func TestBucketService(t *testing.T) {
 	// Setting up listener and repository on testcontainer
 	lis := bufconn.Listen(bufSize)
 	br := repos.NewBucketRepo(setupTestDB(t))
-
+	bStorage := storage.NewBucketLocalFS("../../data")
 	// Registering new server
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, services.AuthInterceptor))
-	bs := services.NewBucketService(br)
+	bs := services.NewBucketService(br, bStorage)
 	pb.RegisterBucketServiceServer(s, bs)
 
 	go func() {
@@ -73,15 +74,15 @@ func TestBucketService(t *testing.T) {
 	t.Run("Creating bucket", func(t *testing.T) {
 		for i := range 4 {
 			b, err := client.CreateBucket(ctx, &pb.CreateBucketRequest{
-				Name: fmt.Sprintf("%s: %d", bucketName, i),
+				Name: fmt.Sprintf("%s_%d", bucketName, i),
 			})
 			assert.NoError(t, err)
-			assert.Equal(t, fmt.Sprintf("%s: %d", bucketName, i), b.Bucket.Name)
+			assert.Equal(t, fmt.Sprintf("%s_%d", bucketName, i), b.Bucket.Name)
 		}
 	})
 	t.Run("Deleting bucket", func(t *testing.T) {
 		_, err := client.DeleteBucket(ctx, &pb.DeleteBucketRequest{
-			Name: fmt.Sprintf("%s: %d", bucketName, 3),
+			Name: fmt.Sprintf("%s_%d", bucketName, 3),
 		})
 		assert.NoError(t, err)
 	})
@@ -89,7 +90,15 @@ func TestBucketService(t *testing.T) {
 		result, err := client.ListAllBuckets(ctx, &pb.ListAllBucketsRequest{})
 		assert.NoError(t, err)
 		for i, b := range result.Buckets {
-			assert.Equal(t, fmt.Sprintf("%s: %d", bucketName, i), b.Name)
+			assert.Equal(t, fmt.Sprintf("%s_%d", bucketName, i), b.Name)
+		}
+	})
+	t.Run("Deleting rest", func(t *testing.T) {
+		for i := range 3 {
+			_, err := client.DeleteBucket(ctx, &pb.DeleteBucketRequest{
+				Name: fmt.Sprintf("%s_%d", bucketName, i),
+			})
+			assert.NoError(t, err)
 		}
 	})
 }
