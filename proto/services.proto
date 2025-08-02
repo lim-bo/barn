@@ -16,12 +16,14 @@ service BucketService {
     rpc CreateBucket(CreateBucketRequest) returns (CreateBucketResponse) {
         option (google.api.http) = {
             put: "/{name}"
+            response_body: "bucket"
         };
     }
 
     rpc ListAllBuckets(ListAllBucketsRequest) returns (ListAllBucketsResponse) {
         option (google.api.http) = {
             get: "/"
+            response_body: "buckets"
         };
     }
     rpc DeleteBucket(DeleteBucketRequest) returns (DeleteBucketResponse) {
@@ -29,7 +31,22 @@ service BucketService {
             delete: "/{name}"
         };
     }
+
+    rpc CheckExistBucket(CheckExistBucketRequest) returns (CheckExistBucketResponse) {
+        option (google.api.http) = {
+           custom: {
+            kind: "HEAD"
+            path: "/{name}"
+           }
+        };
+    }
 }
+
+message CheckExistBucketRequest {
+    string name = 1;
+}
+
+message CheckExistBucketResponse {}
 
 message ListAllBucketsRequest {}
 

@@ -9,6 +9,8 @@ import (
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/storage"
 	"github.com/lim-bo/barn/pkg/models"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type BucketService struct {
@@ -22,6 +24,7 @@ type BucketsRepositoryI interface {
 	CreateBucket(ownerId uuid.UUID, bucket string) (*models.Bucket, error)
 	DeleteBucket(ownerId uuid.UUID, bucket string) error
 	ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket, error)
+	CheckExist(ownerID uuid.UUID, bucket string) (bool, error)
 }
 
 func NewBucketService(br BucketsRepositoryI, bucketStorage storage.BucketStorage) *BucketService {
@@ -105,4 +108,21 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 	return &pb.ListAllBucketsResponse{
 		Buckets: result,
 	}, nil
+}
+
+func (bs *BucketService) CheckExistBucket(ctx context.Context, req *pb.CheckExistBucketRequest) (*pb.CheckExistBucketResponse, error) {
+	reqID := ctx.Value("Request-ID").(string)
+	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
+	}
+	exist, err := bs.br.CheckExist(ownerID, req.Name)
+	if err != nil {
+		slog.Error("check bucket repository error", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if exist {
+		return &pb.CheckExistBucketResponse{}, nil
+	}
+	return nil, status.Error(codes.NotFound, "bucket doesn't exist")
 }

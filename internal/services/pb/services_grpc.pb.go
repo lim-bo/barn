@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BucketService_CreateBucket_FullMethodName   = "/s3.BucketService/CreateBucket"
-	BucketService_ListAllBuckets_FullMethodName = "/s3.BucketService/ListAllBuckets"
-	BucketService_DeleteBucket_FullMethodName   = "/s3.BucketService/DeleteBucket"
+	BucketService_CreateBucket_FullMethodName     = "/s3.BucketService/CreateBucket"
+	BucketService_ListAllBuckets_FullMethodName   = "/s3.BucketService/ListAllBuckets"
+	BucketService_DeleteBucket_FullMethodName     = "/s3.BucketService/DeleteBucket"
+	BucketService_CheckExistBucket_FullMethodName = "/s3.BucketService/CheckExistBucket"
 )
 
 // BucketServiceClient is the client API for BucketService service.
@@ -33,6 +34,7 @@ type BucketServiceClient interface {
 	CreateBucket(ctx context.Context, in *CreateBucketRequest, opts ...grpc.CallOption) (*CreateBucketResponse, error)
 	ListAllBuckets(ctx context.Context, in *ListAllBucketsRequest, opts ...grpc.CallOption) (*ListAllBucketsResponse, error)
 	DeleteBucket(ctx context.Context, in *DeleteBucketRequest, opts ...grpc.CallOption) (*DeleteBucketResponse, error)
+	CheckExistBucket(ctx context.Context, in *CheckExistBucketRequest, opts ...grpc.CallOption) (*CheckExistBucketResponse, error)
 }
 
 type bucketServiceClient struct {
@@ -73,6 +75,16 @@ func (c *bucketServiceClient) DeleteBucket(ctx context.Context, in *DeleteBucket
 	return out, nil
 }
 
+func (c *bucketServiceClient) CheckExistBucket(ctx context.Context, in *CheckExistBucketRequest, opts ...grpc.CallOption) (*CheckExistBucketResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckExistBucketResponse)
+	err := c.cc.Invoke(ctx, BucketService_CheckExistBucket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BucketServiceServer is the server API for BucketService service.
 // All implementations must embed UnimplementedBucketServiceServer
 // for forward compatibility.
@@ -82,6 +94,7 @@ type BucketServiceServer interface {
 	CreateBucket(context.Context, *CreateBucketRequest) (*CreateBucketResponse, error)
 	ListAllBuckets(context.Context, *ListAllBucketsRequest) (*ListAllBucketsResponse, error)
 	DeleteBucket(context.Context, *DeleteBucketRequest) (*DeleteBucketResponse, error)
+	CheckExistBucket(context.Context, *CheckExistBucketRequest) (*CheckExistBucketResponse, error)
 	mustEmbedUnimplementedBucketServiceServer()
 }
 
@@ -100,6 +113,9 @@ func (UnimplementedBucketServiceServer) ListAllBuckets(context.Context, *ListAll
 }
 func (UnimplementedBucketServiceServer) DeleteBucket(context.Context, *DeleteBucketRequest) (*DeleteBucketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBucket not implemented")
+}
+func (UnimplementedBucketServiceServer) CheckExistBucket(context.Context, *CheckExistBucketRequest) (*CheckExistBucketResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckExistBucket not implemented")
 }
 func (UnimplementedBucketServiceServer) mustEmbedUnimplementedBucketServiceServer() {}
 func (UnimplementedBucketServiceServer) testEmbeddedByValue()                       {}
@@ -176,6 +192,24 @@ func _BucketService_DeleteBucket_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BucketService_CheckExistBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckExistBucketRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BucketServiceServer).CheckExistBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BucketService_CheckExistBucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BucketServiceServer).CheckExistBucket(ctx, req.(*CheckExistBucketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BucketService_ServiceDesc is the grpc.ServiceDesc for BucketService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -194,6 +228,10 @@ var BucketService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBucket",
 			Handler:    _BucketService_DeleteBucket_Handler,
+		},
+		{
+			MethodName: "CheckExistBucket",
+			Handler:    _BucketService_CheckExistBucket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

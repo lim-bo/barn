@@ -80,11 +80,23 @@ func TestBucketService(t *testing.T) {
 			assert.Equal(t, fmt.Sprintf("%s_%d", bucketName, i), b.Bucket.Name)
 		}
 	})
+	t.Run("Checking if bucket exis: true", func(t *testing.T) {
+		_, err := client.CheckExistBucket(ctx, &pb.CheckExistBucketRequest{
+			Name: fmt.Sprintf("%s_%d", bucketName, 0),
+		})
+		assert.NoError(t, err)
+	})
 	t.Run("Deleting bucket", func(t *testing.T) {
 		_, err := client.DeleteBucket(ctx, &pb.DeleteBucketRequest{
 			Name: fmt.Sprintf("%s_%d", bucketName, 3),
 		})
 		assert.NoError(t, err)
+	})
+	t.Run("Checking if bucket exis: false", func(t *testing.T) {
+		_, err := client.CheckExistBucket(ctx, &pb.CheckExistBucketRequest{
+			Name: fmt.Sprintf("%s_%d", bucketName, 3),
+		})
+		assert.Error(t, err)
 	})
 	t.Run("Listing buckets", func(t *testing.T) {
 		result, err := client.ListAllBuckets(ctx, &pb.ListAllBucketsRequest{})

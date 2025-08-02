@@ -8,4 +8,5 @@ var (
 	ErrExistBucket   = errors.New("bucket already exist")
 	ErrInvalidUID    = errors.New("given ownerID is invalid")
 	ErrInvalidBucket = errors.New("invalid bucket name")
+	ErrRepository    = errors.New("repository error")
 )
