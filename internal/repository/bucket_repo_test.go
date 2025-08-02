@@ -159,13 +159,13 @@ func TestIntegrational(t *testing.T) {
 	bucket := "test_bucket"
 	t.Run("creating buckets", func(t *testing.T) {
 		for i := range 4 {
-			b, err := br.CreateBucket(ownerID, fmt.Sprintf("%s №%d", bucket, i))
+			b, err := br.CreateBucket(ownerID, fmt.Sprintf("%s_%d", bucket, i))
 			assert.NoError(t, err)
 			t.Log("bucket created: ", b)
 		}
 	})
 	t.Run("deleting bucket", func(t *testing.T) {
-		err := br.DeleteBucket(ownerID, fmt.Sprintf("%s №%d", bucket, 3))
+		err := br.DeleteBucket(ownerID, fmt.Sprintf("%s_%d", bucket, 3))
 		assert.NoError(t, err)
 	})
 	t.Run("listing bucket", func(t *testing.T) {

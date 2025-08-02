@@ -65,6 +65,9 @@ func NewBucketRepoWithConn(conn PgConnection) *BucketsRepository {
 }
 
 func (br *BucketsRepository) CreateBucket(ownerId uuid.UUID, bucket string) (*models.Bucket, error) {
+	if !validateBucketName(bucket) {
+		return nil, errvalues.ErrInvalidBucket
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	tx, err := br.conn.Begin(ctx)
