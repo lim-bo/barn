@@ -39,12 +39,12 @@ func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketR
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		slog.Error("create bucket request with invalid uid", slog.String("req_id", reqID))
-		return nil, errvalues.ErrInvalidUID
+		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	bucket, err := bs.br.CreateBucket(ownerID, req.Name)
 	if err != nil {
 		slog.Error("error creating bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	go func() {
 		err := bs.storageEngine.CreateBucket(context.Background(), req.Name)
@@ -68,12 +68,12 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 	reqID := ctx.Value("Request-ID").(string)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		return nil, errvalues.ErrInvalidUID
+		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	err = bs.br.DeleteBucket(ownerID, req.Name)
 	if err != nil {
 		slog.Error("error deleting bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	go func() {
 		err := bs.storageEngine.DeleteBucket(context.Background(), req.Name)
@@ -89,12 +89,12 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 	reqID := ctx.Value("Request-ID").(string)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		return nil, errvalues.ErrInvalidUID
+		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	buckets, err := bs.br.ListAllBuckets(ownerID)
 	if err != nil {
 		slog.Error("error listing buckets", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
-		return nil, nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	result := make([]*pb.Bucket, 0, len(buckets))
 	for _, b := range buckets {
