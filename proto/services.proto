@@ -1,6 +1,7 @@
 syntax = "proto3";
 package s3;
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 option go_package = "github.com/lim-bo/barn/internal/services/pb";
 // Messages
 message Bucket {
@@ -8,6 +9,16 @@ message Bucket {
     string name = 2;
     string owner_id = 3;
     string created_at = 4;
+}
+
+message UserCredentials {
+    string username = 1;
+    string password = 2;
+}
+
+message Keys {
+    string access_key = 1;
+    string secret_key = 2;
 }
 
 // Services
@@ -67,3 +78,43 @@ message DeleteBucketRequest {
 }
 
 message DeleteBucketResponse {}
+
+service AuthService {
+    rpc RegisterWithKeys(google.protobuf.Empty) returns (RegisterResponse) {
+        option (google.api.http) = {
+            post: "auth/register-pass"
+            response_body: "keys"
+        };
+    }
+    rpc RegisterWithPassword(RegisterWithPasswordRequest) returns (RegisterResponse) {
+        option (google.api.http) = {
+            post: "/auth/register"
+            body: "credentials"
+            response_body: "keys"
+        };
+    }
+
+    rpc LoginWithPassword(LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/auth/register"
+            body: "credentials"
+            response_body: "keys"
+        };
+    }
+}
+
+message RegisterWithPasswordRequest { 
+    UserCredentials credentials = 1;
+}
+
+message RegisterResponse {
+    Keys keys = 1;
+}
+
+message LoginRequest {
+    UserCredentials credentials = 1;
+}
+
+message LoginResponse {
+    Keys keys = 1;
+}

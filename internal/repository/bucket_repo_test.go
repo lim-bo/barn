@@ -152,7 +152,7 @@ func TestListAllBuckets(t *testing.T) {
 
 var ownerID = uuid.New()
 
-func TestIntegrational(t *testing.T) {
+func TestBucketsIntegrational(t *testing.T) {
 	t.Parallel()
 	cfg := setupTestDB(t)
 	br := repos.NewBucketRepo(&cfg)
@@ -215,7 +215,15 @@ func setupTestDB(t *testing.T) repos.DBConfig {
 	if err != nil {
 		t.Fatal("error connecting to container: " + err.Error())
 	}
-	migrations, err := os.ReadFile("../../migrations/postgresql/baseline.sql")
+	migrations, err := os.ReadFile("../../migrations/postgresql/0_baseline.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pool.Exec(context.Background(), string(migrations))
+	if err != nil {
+		t.Fatal("error setting migrations: " + err.Error())
+	}
+	migrations, err = os.ReadFile("../../migrations/postgresql/1_add_username_password.up.sql")
 	if err != nil {
 		t.Fatal(err)
 	}

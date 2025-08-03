@@ -10,6 +10,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -91,6 +92,110 @@ func (x *Bucket) GetCreatedAt() string {
 	return ""
 }
 
+type UserCredentials struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserCredentials) Reset() {
+	*x = UserCredentials{}
+	mi := &file_services_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserCredentials) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserCredentials) ProtoMessage() {}
+
+func (x *UserCredentials) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserCredentials.ProtoReflect.Descriptor instead.
+func (*UserCredentials) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UserCredentials) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UserCredentials) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type Keys struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessKey     string                 `protobuf:"bytes,1,opt,name=access_key,json=accessKey,proto3" json:"access_key,omitempty"`
+	SecretKey     string                 `protobuf:"bytes,2,opt,name=secret_key,json=secretKey,proto3" json:"secret_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Keys) Reset() {
+	*x = Keys{}
+	mi := &file_services_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Keys) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Keys) ProtoMessage() {}
+
+func (x *Keys) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Keys.ProtoReflect.Descriptor instead.
+func (*Keys) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Keys) GetAccessKey() string {
+	if x != nil {
+		return x.AccessKey
+	}
+	return ""
+}
+
+func (x *Keys) GetSecretKey() string {
+	if x != nil {
+		return x.SecretKey
+	}
+	return ""
+}
+
 type CheckExistBucketRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -100,7 +205,7 @@ type CheckExistBucketRequest struct {
 
 func (x *CheckExistBucketRequest) Reset() {
 	*x = CheckExistBucketRequest{}
-	mi := &file_services_proto_msgTypes[1]
+	mi := &file_services_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -112,7 +217,7 @@ func (x *CheckExistBucketRequest) String() string {
 func (*CheckExistBucketRequest) ProtoMessage() {}
 
 func (x *CheckExistBucketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[1]
+	mi := &file_services_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -125,7 +230,7 @@ func (x *CheckExistBucketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckExistBucketRequest.ProtoReflect.Descriptor instead.
 func (*CheckExistBucketRequest) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{1}
+	return file_services_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CheckExistBucketRequest) GetName() string {
@@ -143,7 +248,7 @@ type CheckExistBucketResponse struct {
 
 func (x *CheckExistBucketResponse) Reset() {
 	*x = CheckExistBucketResponse{}
-	mi := &file_services_proto_msgTypes[2]
+	mi := &file_services_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -155,7 +260,7 @@ func (x *CheckExistBucketResponse) String() string {
 func (*CheckExistBucketResponse) ProtoMessage() {}
 
 func (x *CheckExistBucketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[2]
+	mi := &file_services_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +273,7 @@ func (x *CheckExistBucketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckExistBucketResponse.ProtoReflect.Descriptor instead.
 func (*CheckExistBucketResponse) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{2}
+	return file_services_proto_rawDescGZIP(), []int{4}
 }
 
 type ListAllBucketsRequest struct {
@@ -179,7 +284,7 @@ type ListAllBucketsRequest struct {
 
 func (x *ListAllBucketsRequest) Reset() {
 	*x = ListAllBucketsRequest{}
-	mi := &file_services_proto_msgTypes[3]
+	mi := &file_services_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -191,7 +296,7 @@ func (x *ListAllBucketsRequest) String() string {
 func (*ListAllBucketsRequest) ProtoMessage() {}
 
 func (x *ListAllBucketsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[3]
+	mi := &file_services_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -204,7 +309,7 @@ func (x *ListAllBucketsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllBucketsRequest.ProtoReflect.Descriptor instead.
 func (*ListAllBucketsRequest) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{3}
+	return file_services_proto_rawDescGZIP(), []int{5}
 }
 
 type ListAllBucketsResponse struct {
@@ -216,7 +321,7 @@ type ListAllBucketsResponse struct {
 
 func (x *ListAllBucketsResponse) Reset() {
 	*x = ListAllBucketsResponse{}
-	mi := &file_services_proto_msgTypes[4]
+	mi := &file_services_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +333,7 @@ func (x *ListAllBucketsResponse) String() string {
 func (*ListAllBucketsResponse) ProtoMessage() {}
 
 func (x *ListAllBucketsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[4]
+	mi := &file_services_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,7 +346,7 @@ func (x *ListAllBucketsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllBucketsResponse.ProtoReflect.Descriptor instead.
 func (*ListAllBucketsResponse) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{4}
+	return file_services_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListAllBucketsResponse) GetBuckets() []*Bucket {
@@ -260,7 +365,7 @@ type CreateBucketRequest struct {
 
 func (x *CreateBucketRequest) Reset() {
 	*x = CreateBucketRequest{}
-	mi := &file_services_proto_msgTypes[5]
+	mi := &file_services_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +377,7 @@ func (x *CreateBucketRequest) String() string {
 func (*CreateBucketRequest) ProtoMessage() {}
 
 func (x *CreateBucketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[5]
+	mi := &file_services_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,7 +390,7 @@ func (x *CreateBucketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBucketRequest.ProtoReflect.Descriptor instead.
 func (*CreateBucketRequest) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{5}
+	return file_services_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateBucketRequest) GetName() string {
@@ -304,7 +409,7 @@ type CreateBucketResponse struct {
 
 func (x *CreateBucketResponse) Reset() {
 	*x = CreateBucketResponse{}
-	mi := &file_services_proto_msgTypes[6]
+	mi := &file_services_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -316,7 +421,7 @@ func (x *CreateBucketResponse) String() string {
 func (*CreateBucketResponse) ProtoMessage() {}
 
 func (x *CreateBucketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[6]
+	mi := &file_services_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -329,7 +434,7 @@ func (x *CreateBucketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBucketResponse.ProtoReflect.Descriptor instead.
 func (*CreateBucketResponse) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{6}
+	return file_services_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateBucketResponse) GetBucket() *Bucket {
@@ -348,7 +453,7 @@ type DeleteBucketRequest struct {
 
 func (x *DeleteBucketRequest) Reset() {
 	*x = DeleteBucketRequest{}
-	mi := &file_services_proto_msgTypes[7]
+	mi := &file_services_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +465,7 @@ func (x *DeleteBucketRequest) String() string {
 func (*DeleteBucketRequest) ProtoMessage() {}
 
 func (x *DeleteBucketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[7]
+	mi := &file_services_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +478,7 @@ func (x *DeleteBucketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBucketRequest.ProtoReflect.Descriptor instead.
 func (*DeleteBucketRequest) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{7}
+	return file_services_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteBucketRequest) GetName() string {
@@ -391,7 +496,7 @@ type DeleteBucketResponse struct {
 
 func (x *DeleteBucketResponse) Reset() {
 	*x = DeleteBucketResponse{}
-	mi := &file_services_proto_msgTypes[8]
+	mi := &file_services_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -403,7 +508,7 @@ func (x *DeleteBucketResponse) String() string {
 func (*DeleteBucketResponse) ProtoMessage() {}
 
 func (x *DeleteBucketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_services_proto_msgTypes[8]
+	mi := &file_services_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -416,20 +521,204 @@ func (x *DeleteBucketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBucketResponse.ProtoReflect.Descriptor instead.
 func (*DeleteBucketResponse) Descriptor() ([]byte, []int) {
-	return file_services_proto_rawDescGZIP(), []int{8}
+	return file_services_proto_rawDescGZIP(), []int{10}
+}
+
+type RegisterWithPasswordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Credentials   *UserCredentials       `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterWithPasswordRequest) Reset() {
+	*x = RegisterWithPasswordRequest{}
+	mi := &file_services_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterWithPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterWithPasswordRequest) ProtoMessage() {}
+
+func (x *RegisterWithPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterWithPasswordRequest.ProtoReflect.Descriptor instead.
+func (*RegisterWithPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RegisterWithPasswordRequest) GetCredentials() *UserCredentials {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
+type RegisterResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keys          *Keys                  `protobuf:"bytes,1,opt,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterResponse) Reset() {
+	*x = RegisterResponse{}
+	mi := &file_services_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterResponse) ProtoMessage() {}
+
+func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
+func (*RegisterResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RegisterResponse) GetKeys() *Keys {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+type LoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Credentials   *UserCredentials       `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
+	mi := &file_services_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginRequest) ProtoMessage() {}
+
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *LoginRequest) GetCredentials() *UserCredentials {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
+type LoginResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keys          *Keys                  `protobuf:"bytes,1,opt,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginResponse) Reset() {
+	*x = LoginResponse{}
+	mi := &file_services_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginResponse) ProtoMessage() {}
+
+func (x *LoginResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
+func (*LoginResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *LoginResponse) GetKeys() *Keys {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
 }
 
 var File_services_proto protoreflect.FileDescriptor
 
 const file_services_proto_rawDesc = "" +
 	"\n" +
-	"\x0eservices.proto\x12\x02s3\x1a\x1cgoogle/api/annotations.proto\"f\n" +
+	"\x0eservices.proto\x12\x02s3\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"f\n" +
 	"\x06Bucket\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
 	"\bowner_id\x18\x03 \x01(\tR\aownerId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\tR\tcreatedAt\"-\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\"I\n" +
+	"\x0fUserCredentials\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"D\n" +
+	"\x04Keys\x12\x1d\n" +
+	"\n" +
+	"access_key\x18\x01 \x01(\tR\taccessKey\x12\x1d\n" +
+	"\n" +
+	"secret_key\x18\x02 \x01(\tR\tsecretKey\"-\n" +
 	"\x17CheckExistBucketRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x1a\n" +
 	"\x18CheckExistBucketResponse\"\x17\n" +
@@ -444,13 +733,25 @@ const file_services_proto_rawDesc = "" +
 	".s3.BucketR\x06bucket\")\n" +
 	"\x13DeleteBucketRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x16\n" +
-	"\x14DeleteBucketResponse2\x84\x03\n" +
+	"\x14DeleteBucketResponse\"T\n" +
+	"\x1bRegisterWithPasswordRequest\x125\n" +
+	"\vcredentials\x18\x01 \x01(\v2\x13.s3.UserCredentialsR\vcredentials\"0\n" +
+	"\x10RegisterResponse\x12\x1c\n" +
+	"\x04keys\x18\x01 \x01(\v2\b.s3.KeysR\x04keys\"E\n" +
+	"\fLoginRequest\x125\n" +
+	"\vcredentials\x18\x01 \x01(\v2\x13.s3.UserCredentialsR\vcredentials\"-\n" +
+	"\rLoginResponse\x12\x1c\n" +
+	"\x04keys\x18\x01 \x01(\v2\b.s3.KeysR\x04keys2\x84\x03\n" +
 	"\rBucketService\x12Z\n" +
 	"\fCreateBucket\x12\x17.s3.CreateBucketRequest\x1a\x18.s3.CreateBucketResponse\"\x17\x82\xd3\xe4\x93\x02\x11b\x06bucket\x1a\a/{name}\x12[\n" +
 	"\x0eListAllBuckets\x12\x19.s3.ListAllBucketsRequest\x1a\x1a.s3.ListAllBucketsResponse\"\x12\x82\xd3\xe4\x93\x02\fb\abuckets\x12\x01/\x12R\n" +
 	"\fDeleteBucket\x12\x17.s3.DeleteBucketRequest\x1a\x18.s3.DeleteBucketResponse\"\x0f\x82\xd3\xe4\x93\x02\t*\a/{name}\x12f\n" +
 	"\x10CheckExistBucket\x12\x1b.s3.CheckExistBucketRequest\x1a\x1c.s3.CheckExistBucketResponse\"\x17\x82\xd3\xe4\x93\x02\x11B\x0f\n" +
-	"\x04HEAD\x12\a/{name}B-Z+github.com/lim-bo/barn/internal/services/pbb\x06proto3"
+	"\x04HEAD\x12\a/{name}2\xd0\x02\n" +
+	"\vAuthService\x12b\n" +
+	"\x10RegisterWithKeys\x12\x16.google.protobuf.Empty\x1a\x14.s3.RegisterResponse\" \x82\xd3\xe4\x93\x02\x1ab\x04keys\"\x12auth/register-pass\x12x\n" +
+	"\x14RegisterWithPassword\x12\x1f.s3.RegisterWithPasswordRequest\x1a\x14.s3.RegisterResponse\")\x82\xd3\xe4\x93\x02#:\vcredentialsb\x04keys\"\x0e/auth/register\x12c\n" +
+	"\x11LoginWithPassword\x12\x10.s3.LoginRequest\x1a\x11.s3.LoginResponse\")\x82\xd3\xe4\x93\x02#:\vcredentialsb\x04keys\"\x0e/auth/registerB-Z+github.com/lim-bo/barn/internal/services/pbb\x06proto3"
 
 var (
 	file_services_proto_rawDescOnce sync.Once
@@ -464,34 +765,51 @@ func file_services_proto_rawDescGZIP() []byte {
 	return file_services_proto_rawDescData
 }
 
-var file_services_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_services_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_services_proto_goTypes = []any{
-	(*Bucket)(nil),                   // 0: s3.Bucket
-	(*CheckExistBucketRequest)(nil),  // 1: s3.CheckExistBucketRequest
-	(*CheckExistBucketResponse)(nil), // 2: s3.CheckExistBucketResponse
-	(*ListAllBucketsRequest)(nil),    // 3: s3.ListAllBucketsRequest
-	(*ListAllBucketsResponse)(nil),   // 4: s3.ListAllBucketsResponse
-	(*CreateBucketRequest)(nil),      // 5: s3.CreateBucketRequest
-	(*CreateBucketResponse)(nil),     // 6: s3.CreateBucketResponse
-	(*DeleteBucketRequest)(nil),      // 7: s3.DeleteBucketRequest
-	(*DeleteBucketResponse)(nil),     // 8: s3.DeleteBucketResponse
+	(*Bucket)(nil),                      // 0: s3.Bucket
+	(*UserCredentials)(nil),             // 1: s3.UserCredentials
+	(*Keys)(nil),                        // 2: s3.Keys
+	(*CheckExistBucketRequest)(nil),     // 3: s3.CheckExistBucketRequest
+	(*CheckExistBucketResponse)(nil),    // 4: s3.CheckExistBucketResponse
+	(*ListAllBucketsRequest)(nil),       // 5: s3.ListAllBucketsRequest
+	(*ListAllBucketsResponse)(nil),      // 6: s3.ListAllBucketsResponse
+	(*CreateBucketRequest)(nil),         // 7: s3.CreateBucketRequest
+	(*CreateBucketResponse)(nil),        // 8: s3.CreateBucketResponse
+	(*DeleteBucketRequest)(nil),         // 9: s3.DeleteBucketRequest
+	(*DeleteBucketResponse)(nil),        // 10: s3.DeleteBucketResponse
+	(*RegisterWithPasswordRequest)(nil), // 11: s3.RegisterWithPasswordRequest
+	(*RegisterResponse)(nil),            // 12: s3.RegisterResponse
+	(*LoginRequest)(nil),                // 13: s3.LoginRequest
+	(*LoginResponse)(nil),               // 14: s3.LoginResponse
+	(*emptypb.Empty)(nil),               // 15: google.protobuf.Empty
 }
 var file_services_proto_depIdxs = []int32{
-	0, // 0: s3.ListAllBucketsResponse.buckets:type_name -> s3.Bucket
-	0, // 1: s3.CreateBucketResponse.bucket:type_name -> s3.Bucket
-	5, // 2: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
-	3, // 3: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
-	7, // 4: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
-	1, // 5: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
-	6, // 6: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
-	4, // 7: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
-	8, // 8: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
-	2, // 9: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0,  // 0: s3.ListAllBucketsResponse.buckets:type_name -> s3.Bucket
+	0,  // 1: s3.CreateBucketResponse.bucket:type_name -> s3.Bucket
+	1,  // 2: s3.RegisterWithPasswordRequest.credentials:type_name -> s3.UserCredentials
+	2,  // 3: s3.RegisterResponse.keys:type_name -> s3.Keys
+	1,  // 4: s3.LoginRequest.credentials:type_name -> s3.UserCredentials
+	2,  // 5: s3.LoginResponse.keys:type_name -> s3.Keys
+	7,  // 6: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
+	5,  // 7: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
+	9,  // 8: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
+	3,  // 9: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
+	15, // 10: s3.AuthService.RegisterWithKeys:input_type -> google.protobuf.Empty
+	11, // 11: s3.AuthService.RegisterWithPassword:input_type -> s3.RegisterWithPasswordRequest
+	13, // 12: s3.AuthService.LoginWithPassword:input_type -> s3.LoginRequest
+	8,  // 13: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
+	6,  // 14: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
+	10, // 15: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
+	4,  // 16: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
+	12, // 17: s3.AuthService.RegisterWithKeys:output_type -> s3.RegisterResponse
+	12, // 18: s3.AuthService.RegisterWithPassword:output_type -> s3.RegisterResponse
+	14, // 19: s3.AuthService.LoginWithPassword:output_type -> s3.LoginResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_services_proto_init() }
@@ -505,9 +823,9 @@ func file_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_services_proto_rawDesc), len(file_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   15,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_services_proto_goTypes,
 		DependencyIndexes: file_services_proto_depIdxs,

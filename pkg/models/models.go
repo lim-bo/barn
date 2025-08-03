@@ -12,3 +12,13 @@ type Bucket struct {
 	OwnerID   uuid.UUID
 	CreatedAt time.Time
 }
+
+type User struct {
+	ID            uuid.UUID
+	AccessKey     string
+	SecretKeyHash string
+	Username      *string
+	PasswordHash  *string
+	Status        string
+	CreatedAt     time.Time
+}
