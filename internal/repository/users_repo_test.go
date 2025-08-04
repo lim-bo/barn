@@ -31,7 +31,7 @@ func TestCreate(t *testing.T) {
 		SecretKeyHash: services.HashKey(services.GenerateSecretKey()),
 		Username:      &username,
 		PasswordHash:  &passwordHash,
-		Status:        "active",
+		Status:        models.StatusActive,
 		CreatedAt:     time.Now(),
 	}
 	query := regexp.QuoteMeta(`INSERT INTO users (access_key, secret_key_hash, username, password_hash, status) VALUES
@@ -68,7 +68,7 @@ func TestGetWithKey(t *testing.T) {
 		SecretKeyHash: services.HashKey(services.GenerateSecretKey()),
 		Username:      &username,
 		PasswordHash:  &passwordHash,
-		Status:        "active",
+		Status:        models.StatusActive,
 		CreatedAt:     time.Now(),
 	}
 	query := regexp.QuoteMeta(`SELECT id, secret_key_hash, username, password_hash, status, created_at FROM users
@@ -108,7 +108,7 @@ func TestGetWithUsername(t *testing.T) {
 		SecretKeyHash: services.HashKey(services.GenerateSecretKey()),
 		Username:      &username,
 		PasswordHash:  &passwordHash,
-		Status:        "active",
+		Status:        models.StatusActive,
 		CreatedAt:     time.Now(),
 	}
 	query := regexp.QuoteMeta(`SELECT id, access_key, secret_key_hash, password_hash, status, created_at FROM users
@@ -133,6 +133,34 @@ func TestGetWithUsername(t *testing.T) {
 	})
 }
 
+func TestUpdateKeys(t *testing.T) {
+	t.Parallel()
+	conn, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatal(err)
+	}
+	ur := repos.NewUsersRepoWithConn(conn)
+	query := regexp.QuoteMeta(`UPDATE users SET access_key = $1, secret_key_hash = $2 WHERE id = $3;`)
+	uid := uuid.New()
+	accessKey := services.GenerateAccessKey()
+	secretKeyHash := services.HashKey(services.GenerateSecretKey())
+	t.Run("successful", func(t *testing.T) {
+		conn.ExpectExec(query).WithArgs(accessKey, secretKeyHash, uid).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		err := ur.UpdateKeys(uid, accessKey, secretKeyHash)
+		assert.NoError(t, err)
+	})
+	t.Run("no user error", func(t *testing.T) {
+		conn.ExpectExec(query).WithArgs(accessKey, secretKeyHash, uid).WillReturnResult(pgxmock.NewResult("UPDATE", 0))
+		err := ur.UpdateKeys(uid, accessKey, secretKeyHash)
+		assert.ErrorIs(t, err, errvalues.ErrUnexistUser)
+	})
+	t.Run("db error", func(t *testing.T) {
+		conn.ExpectExec(query).WithArgs(accessKey, secretKeyHash, uid).WillReturnError(errors.New("db error"))
+		err := ur.UpdateKeys(uid, accessKey, secretKeyHash)
+		assert.Error(t, err)
+	})
+}
+
 func TestUsersIntegrational(t *testing.T) {
 	t.Parallel()
 	cfg := setupTestDB(t)
@@ -140,12 +168,11 @@ func TestUsersIntegrational(t *testing.T) {
 	username := "test_user"
 	passwordHash := services.HashKey("password")
 	user := models.User{
-		ID:            uuid.New(),
 		AccessKey:     services.GenerateAccessKey(),
 		SecretKeyHash: services.HashKey(services.GenerateSecretKey()),
 		Username:      &username,
 		PasswordHash:  &passwordHash,
-		Status:        "active",
+		Status:        models.StatusActive,
 	}
 	t.Run("create user", func(t *testing.T) {
 		err := ur.Create(&user)
@@ -160,6 +187,7 @@ func TestUsersIntegrational(t *testing.T) {
 		assert.Equal(t, result.Status, user.Status)
 		assert.Equal(t, result.AccessKey, user.AccessKey)
 	})
+	var uid uuid.UUID
 	t.Run("get user by username", func(t *testing.T) {
 		result, err := ur.GetByUsername(*user.Username)
 		assert.NoError(t, err)
@@ -168,5 +196,18 @@ func TestUsersIntegrational(t *testing.T) {
 		assert.Equal(t, result.PasswordHash, user.PasswordHash)
 		assert.Equal(t, result.Status, user.Status)
 		assert.Equal(t, result.AccessKey, user.AccessKey)
+		uid = result.ID
+	})
+	accessKey := services.GenerateAccessKey()
+	secretKeyHash := services.HashKey(services.GenerateSecretKey())
+	t.Run("updating keys", func(t *testing.T) {
+		err := ur.UpdateKeys(uid, accessKey, secretKeyHash)
+		assert.NoError(t, err)
+	})
+	t.Run("check new keys", func(t *testing.T) {
+		result, err := ur.GetByAccessKey(accessKey)
+		assert.NoError(t, err)
+		assert.Equal(t, accessKey, result.AccessKey)
+		assert.Equal(t, secretKeyHash, result.SecretKeyHash)
 	})
 }

@@ -13,6 +13,10 @@ type Bucket struct {
 	CreatedAt time.Time
 }
 
+var (
+	StatusActive = "active"
+)
+
 type User struct {
 	ID            uuid.UUID
 	AccessKey     string

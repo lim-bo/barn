@@ -6,7 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lim-bo/barn/internal/cleanup"
 	"github.com/lim-bo/barn/internal/errvalues"
@@ -62,6 +64,10 @@ func (ur *UsersRepository) Create(user *models.User) error {
 		$1, $2, $3, $4, $5
 	);`, user.AccessKey, user.SecretKeyHash, user.Username, user.PasswordHash, user.Status)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return errvalues.ErrUserExists
+		}
 		return errors.New("inserting user error: " + err.Error())
 	}
 	return nil
@@ -97,4 +103,17 @@ func (ur *UsersRepository) GetByUsername(username string) (*models.User, error) 
 		return nil, errors.New("getting user error: " + err.Error())
 	}
 	return &user, nil
+}
+
+func (ur *UsersRepository) UpdateKeys(uid uuid.UUID, accessKey string, secretKeyHash string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	ct, err := ur.conn.Exec(ctx, `UPDATE users SET access_key = $1, secret_key_hash = $2 WHERE id = $3;`, accessKey, secretKeyHash, uid)
+	if err != nil {
+		return errors.New("updating keys error: " + err.Error())
+	}
+	if ct.RowsAffected() == 0 {
+		return errvalues.ErrUnexistUser
+	}
+	return nil
 }

@@ -10,4 +10,5 @@ var (
 	ErrInvalidBucket = errors.New("invalid bucket name")
 	ErrRepository    = errors.New("repository error")
 	ErrUnexistUser   = errors.New("user not found")
+	ErrUserExists    = errors.New("user already exist")
 )
