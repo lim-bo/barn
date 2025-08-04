@@ -23,12 +23,73 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
 	bufSize = 1024 * 1024
 	ownerID = uuid.New()
 )
+
+func TestAuthService(t *testing.T) {
+	t.Parallel()
+	lis := bufconn.Listen(bufSize)
+	ur := repos.NewUsersRepo(setupTestDB(t))
+
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor))
+	as := services.NewAuthService(ur)
+	pb.RegisterAuthServiceServer(s, as)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			t.Fatal(err)
+		}
+	}()
+	t.Cleanup(func() {
+		s.GracefulStop()
+	})
+
+	conn, err := grpc.NewClient("passthrough:///bufnet", grpc.WithContextDialer(
+		func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		},
+	), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	client := pb.NewAuthServiceClient(conn)
+	credentials := map[string]string{
+		"username": "test_user",
+		"password": "test_password",
+	}
+	ctx := context.Background()
+	t.Run("register with keys", func(t *testing.T) {
+		resp, err := client.RegisterWithKeys(ctx, &emptypb.Empty{})
+		assert.NoError(t, err)
+		t.Logf("recieved keys: access: %s secret %s", resp.Keys.AccessKey, resp.Keys.SecretKey)
+	})
+	t.Run("register with credentials", func(t *testing.T) {
+		resp, err := client.RegisterWithPassword(ctx, &pb.RegisterWithPasswordRequest{
+			Credentials: &pb.UserCredentials{
+				Username: credentials["username"],
+				Password: credentials["password"],
+			},
+		})
+		assert.NoError(t, err)
+		t.Logf("recieved keys: access: %s secret %s", resp.Keys.AccessKey, resp.Keys.SecretKey)
+	})
+	t.Run("login via password", func(t *testing.T) {
+		resp, err := client.LoginWithPassword(ctx, &pb.LoginRequest{
+			Credentials: &pb.UserCredentials{
+				Username: credentials["username"],
+				Password: credentials["password"],
+			},
+		})
+		assert.NoError(t, err)
+		t.Logf("renewed keys: access: %s secret %s", resp.Keys.AccessKey, resp.Keys.SecretKey)
+	})
+}
 
 func TestBucketService(t *testing.T) {
 	t.Parallel()
@@ -143,7 +204,15 @@ func setupTestDB(t *testing.T) *repos.DBConfig {
 	if err != nil {
 		t.Fatal("error connecting to container: " + err.Error())
 	}
-	migrations, err := os.ReadFile("../../migrations/postgresql/baseline.sql")
+	migrations, err := os.ReadFile("../../migrations/postgresql/0_baseline.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pool.Exec(context.Background(), string(migrations))
+	if err != nil {
+		t.Fatal("error setting migrations: " + err.Error())
+	}
+	migrations, err = os.ReadFile("../../migrations/postgresql/1_add_username_password.up.sql")
 	if err != nil {
 		t.Fatal(err)
 	}

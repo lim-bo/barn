@@ -1,3 +1,5 @@
+//protoc --go_out=paths=source_relative:./internal/services/pb --go-grpc_out=paths=source_relative:./internal/services/pb -I./proto  proto/services.proto
+
 syntax = "proto3";
 package s3;
 import "google/api/annotations.proto";
