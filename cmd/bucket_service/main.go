@@ -7,12 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/lim-bo/barn/internal/cleanup"
 	repos "github.com/lim-bo/barn/internal/repository"
 	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/settings"
 	"github.com/lim-bo/barn/internal/storage"
+	"github.com/lim-bo/barn/pkg/cleanup"
 	"google.golang.org/grpc"
 )
 

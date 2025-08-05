@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/lim-bo/barn/internal/cleanup"
 	"github.com/lim-bo/barn/internal/errvalues"
+	"github.com/lim-bo/barn/pkg/cleanup"
 	"github.com/lim-bo/barn/pkg/models"
 )
 
