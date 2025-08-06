@@ -14,6 +14,7 @@ import (
 func RequestIDInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	reqID := uuid.New()
 	ctx = context.WithValue(ctx, "Request-ID", reqID.String())
+	slog.Info("incoming request", slog.String("req_id", reqID.String()))
 	return handler(ctx, req)
 }
 

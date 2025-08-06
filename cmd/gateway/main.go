@@ -19,8 +19,6 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(os.Stdout)
 	cfg := settings.GetConfig()
 
 	gwMux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(headerMatcher))
@@ -93,7 +91,8 @@ func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "X-Access-Key, X-Plain-Secret, X-Signature, X-Timestamp, Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "X-Access-Key, X-Plain-Secret, X-Signature, X-Timestamp, Content-Type, "+
+			"X-Method, X-Path, X-Query")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -110,6 +109,8 @@ var (
 		"x-plain-secret": true,
 		"x-signature":    true,
 		"x-timestamp":    true,
+		"x-method":       true,
+		"x-path":         true,
 	}
 )
 

@@ -18,8 +18,6 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(os.Stdout)
 	cfg := settings.GetConfig()
 
 	slog.SetLogLoggerLevel(slog.Level(cfg.GetInt("bucket_service.log_level")))
