@@ -1,3 +1,4 @@
 .env
 cfg.yaml
 .vscode
+pkg/auth_signer/*_test.go
