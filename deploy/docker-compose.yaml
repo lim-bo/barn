@@ -44,6 +44,8 @@ services:
     container_name: barn_bucket_container
     ports:
       - "50051:50051"
+    volumes:
+      - s3_data:/app/data
     environment:
       WAIT_HOSTS: postgres:5432
     depends_on:
@@ -76,3 +78,4 @@ networks:
 
 volumes:
   barn_pgdata:
+  s3_data:
