@@ -21,7 +21,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -98,7 +97,7 @@ func TestBucketService(t *testing.T) {
 	br := repos.NewBucketRepo(setupTestDB(t))
 	bStorage := storage.NewBucketLocalFS("../../data")
 	// Registering new server
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, services.AuthInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, authInterceptorPlaceholder))
 	bs := services.NewBucketService(br, bStorage)
 	pb.RegisterBucketServiceServer(s, bs)
 
@@ -125,12 +124,8 @@ func TestBucketService(t *testing.T) {
 	t.Cleanup(func() {
 		conn.Close()
 	})
-
-	// Setting up data to operate with
-	md := metadata.Pairs("authorization", ownerID.String())
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	bucketName := "test_bucket"
-
+	ctx := context.Background()
 	client := pb.NewBucketServiceClient(conn)
 	t.Run("Creating bucket", func(t *testing.T) {
 		for i := range 4 {
@@ -174,6 +169,11 @@ func TestBucketService(t *testing.T) {
 			assert.NoError(t, err)
 		}
 	})
+}
+
+func authInterceptorPlaceholder(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	ctx = context.WithValue(ctx, "Owner-ID", ownerID.String())
+	return handler(ctx, req)
 }
 
 func setupTestDB(t *testing.T) *repos.DBConfig {

@@ -1,5 +1,5 @@
 //protoc --go_out=paths=source_relative:./internal/services/pb --go-grpc_out=paths=source_relative:./internal/services/pb -I./proto  proto/services.proto
-
+//protoc --grpc-gateway_out=paths=source_relative:./internal/services/pb -I./proto proto/services.proto
 syntax = "proto3";
 package s3;
 import "google/api/annotations.proto";
@@ -84,13 +84,13 @@ message DeleteBucketResponse {}
 service AuthService {
     rpc RegisterWithKeys(google.protobuf.Empty) returns (RegisterResponse) {
         option (google.api.http) = {
-            post: "auth/register-pass"
+            post: "/auth/register"
             response_body: "keys"
         };
     }
     rpc RegisterWithPassword(RegisterWithPasswordRequest) returns (RegisterResponse) {
         option (google.api.http) = {
-            post: "/auth/register"
+            post: "/auth/register-pass"
             body: "credentials"
             response_body: "keys"
         };
@@ -98,7 +98,7 @@ service AuthService {
 
     rpc LoginWithPassword(LoginRequest) returns (LoginResponse) {
         option (google.api.http) = {
-            post: "/auth/register"
+            post: "/auth/login"
             body: "credentials"
             response_body: "keys"
         };

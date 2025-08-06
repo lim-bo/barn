@@ -16,6 +16,60 @@ services:
     restart: unless-stopped
     networks:
       - barn_data_network
+  auth_service:
+    build:
+      context: ../
+      dockerfile: deploy/auth_service/Dockerfile
+    image: barn_auth_service
+    container_name: barn_auth_container
+    ports:
+      - "50052:50052"
+    environment:
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+    networks:
+      - barn_data_network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50052"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+  bucket_service:
+    build:
+      context: ../
+      dockerfile: deploy/bucket_service/Dockerfile
+    image: barn_bucket_service
+    container_name: barn_bucket_container
+    ports:
+      - "50051:50051"
+    environment:
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+    networks:
+      - barn_data_network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+  gateway:
+    build:
+      context: ../
+      dockerfile: deploy/gateway/Dockerfile
+    image: barn_gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth_service
+      - bucket_service
+      - postgresql
+    restart: unless-stopped
+    networks:
+      - barn_data_network
 
 networks:
   barn_data_network:

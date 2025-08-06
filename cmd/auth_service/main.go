@@ -13,7 +13,6 @@ import (
 	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/settings"
-	"github.com/lim-bo/barn/internal/storage"
 	"github.com/lim-bo/barn/pkg/cleanup"
 	"google.golang.org/grpc"
 )
@@ -25,14 +24,6 @@ func main() {
 
 	slog.SetLogLoggerLevel(slog.Level(cfg.GetInt("bucket_service.log_level")))
 
-	storageEngine := storage.NewBucketLocalFS(cfg.GetString("storage.root"))
-	bucketsRepo := repos.NewBucketRepo(&repos.DBConfig{
-		Address:  cfg.GetString("postgres.address"),
-		User:     cfg.GetString("postgres.user"),
-		Password: cfg.GetString("postgres.password"),
-		DB:       cfg.GetString("postgres.db"),
-	})
-
 	usersRepo := repos.NewUsersRepo(&repos.DBConfig{
 		Address:  cfg.GetString("postgres.address"),
 		User:     cfg.GetString("postgres.user"),
@@ -40,11 +31,9 @@ func main() {
 		DB:       cfg.GetString("postgres.db"),
 	})
 
-	sigValidator := services.NewSignatureValidator(usersRepo)
-
-	bs := services.NewBucketService(bucketsRepo, storageEngine)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, sigValidator.AuthInterceptor))
-	pb.RegisterBucketServiceServer(s, bs)
+	as := services.NewAuthService(usersRepo)
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor))
+	pb.RegisterAuthServiceServer(s, as)
 
 	cleanup.Register(&cleanup.Job{
 		Name: "shutting down server",
@@ -54,7 +43,7 @@ func main() {
 		},
 	})
 
-	addr := cfg.GetString("bucket_service.address")
+	addr := cfg.GetString("auth_service.address")
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatal(err)

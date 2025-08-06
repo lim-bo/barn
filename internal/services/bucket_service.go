@@ -14,7 +14,7 @@ import (
 )
 
 type BucketService struct {
-	br            BucketsRepositoryI
+	bucketsRepo   BucketsRepositoryI
 	storageEngine storage.BucketStorage
 
 	pb.UnimplementedBucketServiceServer
@@ -29,7 +29,7 @@ type BucketsRepositoryI interface {
 
 func NewBucketService(br BucketsRepositoryI, bucketStorage storage.BucketStorage) *BucketService {
 	return &BucketService{
-		br:            br,
+		bucketsRepo:   br,
 		storageEngine: bucketStorage,
 	}
 }
@@ -41,7 +41,7 @@ func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketR
 		slog.Error("create bucket request with invalid uid", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	bucket, err := bs.br.CreateBucket(ownerID, req.Name)
+	bucket, err := bs.bucketsRepo.CreateBucket(ownerID, req.Name)
 	if err != nil {
 		slog.Error("error creating bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, status.Error(codes.Internal, err.Error())
@@ -70,7 +70,7 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	err = bs.br.DeleteBucket(ownerID, req.Name)
+	err = bs.bucketsRepo.DeleteBucket(ownerID, req.Name)
 	if err != nil {
 		slog.Error("error deleting bucket", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, status.Error(codes.Internal, err.Error())
@@ -91,7 +91,7 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	buckets, err := bs.br.ListAllBuckets(ownerID)
+	buckets, err := bs.bucketsRepo.ListAllBuckets(ownerID)
 	if err != nil {
 		slog.Error("error listing buckets", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, status.Error(codes.Internal, err.Error())
@@ -116,7 +116,7 @@ func (bs *BucketService) CheckExistBucket(ctx context.Context, req *pb.CheckExis
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	exist, err := bs.br.CheckExist(ownerID, req.Name)
+	exist, err := bs.bucketsRepo.CheckExist(ownerID, req.Name)
 	if err != nil {
 		slog.Error("check bucket repository error", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return nil, status.Error(codes.Internal, err.Error())
