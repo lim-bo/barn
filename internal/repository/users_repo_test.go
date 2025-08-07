@@ -164,7 +164,7 @@ func TestUpdateKeys(t *testing.T) {
 func TestUsersIntegrational(t *testing.T) {
 	t.Parallel()
 	cfg := setupTestDB(t)
-	ur := repos.NewUsersRepo(&cfg)
+	ur := repos.NewUsersRepo(cfg)
 	username := "test_user"
 	passwordHash := services.HashKey("password")
 	user := models.User{

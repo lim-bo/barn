@@ -2,15 +2,18 @@ package services_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
+
+	"github.com/google/uuid"
 	repos "github.com/lim-bo/barn/internal/repository"
 	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/internal/services/pb"
@@ -194,41 +197,26 @@ func setupTestDB(t *testing.T) *repos.DBConfig {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	pgxpoolCfg, err := pgxpool.ParseConfig(connStr)
-	if err != nil {
-		t.Fatal("error parsing config: " + err.Error())
-	}
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), pgxpoolCfg)
-	if err != nil {
-		t.Fatal("error connecting to container: " + err.Error())
-	}
-	migrations, err := os.ReadFile("../../migrations/postgresql/0_baseline.sql")
+	connStr += "sslmode=disable"
+	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = pool.Exec(context.Background(), string(migrations))
-	if err != nil {
-		t.Fatal("error setting migrations: " + err.Error())
-	}
-	migrations, err = os.ReadFile("../../migrations/postgresql/1_add_username_password.up.sql")
+	err = goose.Up(conn, "../../migrations/postgresql")
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = pool.Exec(context.Background(), string(migrations))
-	if err != nil {
-		t.Fatal("error setting migrations: " + err.Error())
-	}
+
 	// Inserting user for owning test buckets
-	_, err = pool.Exec(context.Background(), `INSERT INTO users (id, access_key, secret_key_hash) VALUES ($1, $2, $3);`, ownerID, "12345", "12345")
+	_, err = conn.Exec(`INSERT INTO users (id, access_key, secret_key_hash) VALUES ($1, $2, $3);`, ownerID, "12345", "12345")
 	if err != nil {
 		t.Fatal("error setting migrations: " + err.Error())
 	}
-	pool.Close()
+	conn.Close()
 	t.Cleanup(func() {
 		container.Terminate(context.Background())
 	})
+	pgxpoolCfg, err := pgxpool.ParseConfig(connStr)
 	return &repos.DBConfig{
 		Address:  pgxpoolCfg.ConnConfig.Host + ":" + strconv.FormatUint(uint64(pgxpoolCfg.ConnConfig.Port), 10),
 		Password: "test_password",
