@@ -26,3 +26,12 @@ type User struct {
 	Status        string
 	CreatedAt     time.Time
 }
+
+type Object struct {
+	ID           uuid.UUID
+	BucketID     uuid.UUID
+	Key          string
+	Size         uint64
+	Etag         string
+	LastModified time.Time
+}

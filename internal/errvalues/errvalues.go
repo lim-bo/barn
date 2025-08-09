@@ -11,4 +11,5 @@ var (
 	ErrRepository    = errors.New("repository error")
 	ErrUnexistUser   = errors.New("user not found")
 	ErrUserExists    = errors.New("user already exist")
+	ErrUnexistObject = errors.New("object with such key not found")
 )
