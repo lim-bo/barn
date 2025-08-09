@@ -57,6 +57,7 @@ func (lfs *LocalFS) StatObject(ctx context.Context, bucket string, key string) (
 		return ObjectMetadata{}, err
 	}
 	return ObjectMetadata{
+		Name:    stat.Name(),
 		Size:    stat.Size(),
 		ModTime: stat.ModTime(),
 	}, nil

@@ -7,6 +7,7 @@ import (
 )
 
 type ObjectMetadata struct {
+	Name    string
 	Size    int64
 	ModTime time.Time
 }
