@@ -55,7 +55,7 @@ func NewObjectsRepoWithConn(conn PgConnection) *ObjectsRepository {
 	}
 }
 
-func (repo *ObjectsRepository) SaveObject(bucket string, obj *models.Object) error {
+func (repo *ObjectsRepository) SaveObject(owner uuid.UUID, bucket string, obj *models.Object) error {
 	var exists bool
 	var bucketID uuid.UUID
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -65,7 +65,7 @@ func (repo *ObjectsRepository) SaveObject(bucket string, obj *models.Object) err
 		return errors.New("starting tx error: " + err.Error())
 	}
 	defer tx.Rollback(ctx)
-	err = tx.QueryRow(ctx, `SELECT id from buckets WHERE name = $1;`, bucket).Scan(&bucketID)
+	err = tx.QueryRow(ctx, `SELECT id from buckets WHERE name = $1 AND owner_id = $2;`, bucket, owner).Scan(&bucketID)
 	if err != nil {
 		return errors.New("error getting bucket id: " + err.Error())
 	}
@@ -93,15 +93,15 @@ func (repo *ObjectsRepository) SaveObject(bucket string, obj *models.Object) err
 	return nil
 }
 
-func (repo *ObjectsRepository) GetObjectInfo(bucket, key string) (*models.Object, error) {
+func (repo *ObjectsRepository) GetObjectInfo(owner uuid.UUID, bucket, key string) (*models.Object, error) {
 	obj := models.Object{
 		Key: key,
 	}
 	query := `SELECT o.id, o.bucket_id, o.size, o.etag, o.last_modified FROM objects o INNER JOIN buckets b ON
-o.bucket_id = b.id WHERE b.name = $1 AND o.key = $2;`
+o.bucket_id = b.id WHERE b.name = $1 AND o.key = $2 AND b.owner_id = $3;`
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	row := repo.conn.QueryRow(ctx, query, bucket, key)
+	row := repo.conn.QueryRow(ctx, query, bucket, key, owner)
 	if err := row.Scan(&obj.ID, &obj.BucketID, &obj.Size, &obj.Etag, &obj.LastModified); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errvalues.ErrUnexistObject
@@ -111,11 +111,11 @@ o.bucket_id = b.id WHERE b.name = $1 AND o.key = $2;`
 	return &obj, nil
 }
 
-func (repo *ObjectsRepository) DeleteObject(bucket, key string) error {
+func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	query := `DELETE FROM objects USING buckets WHERE objects.bucket_id = buckets.id AND buckets.name = $1 AND objects.key = $2;`
-	ct, err := repo.conn.Exec(ctx, query, bucket, key)
+	query := `DELETE FROM objects USING buckets WHERE objects.bucket_id = buckets.id AND buckets.name = $1 AND objects.key = $2 AND buckets.owner_id = $3;`
+	ct, err := repo.conn.Exec(ctx, query, bucket, key, owner)
 	if err != nil {
 		return errors.New("deleting error: " + err.Error())
 	}
