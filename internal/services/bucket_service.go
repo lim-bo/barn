@@ -47,7 +47,7 @@ func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketR
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	go func() {
-		err := bs.storageEngine.CreateBucket(context.Background(), req.Name)
+		err := bs.storageEngine.CreateBucket(context.Background(), ownerID.String()+"_"+req.Name)
 		if err != nil {
 			slog.Error("error created bucket in storage", slog.String("error", err.Error()), slog.String("req_id", reqID),
 				slog.String("uid", ownerID.String()))
@@ -76,7 +76,7 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	go func() {
-		err := bs.storageEngine.DeleteBucket(context.Background(), req.Name)
+		err := bs.storageEngine.DeleteBucket(context.Background(), ownerID.String()+"_"+req.Name)
 		if err != nil {
 			slog.Error("error deleting bucket from storage", slog.String("error", err.Error()), slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		}

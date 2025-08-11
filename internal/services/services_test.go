@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -18,12 +19,14 @@ import (
 	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/storage"
+	"github.com/lim-bo/barn/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -170,6 +173,132 @@ func TestBucketService(t *testing.T) {
 				Name: fmt.Sprintf("%s_%d", bucketName, i),
 			})
 			assert.NoError(t, err)
+		}
+	})
+}
+
+func TestObjectService(t *testing.T) {
+	t.Parallel()
+	// Setting up listener and repository on testcontainer
+	lis := bufconn.Listen(bufSize)
+	cfg := setupTestDB(t)
+	br := repos.NewObjectsRepo(cfg)
+	oStorage := storage.NewLocalFS("../../data")
+
+	// Registering new server
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, authInterceptorPlaceholder))
+	os := services.NewObjectService(br, oStorage)
+	pb.RegisterObjectServiceServer(s, os)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	t.Cleanup(func() {
+		s.GracefulStop()
+	})
+
+	conn, err := grpc.NewClient("passthrough:///bufnet", grpc.WithContextDialer(
+		func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		},
+	), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	client := pb.NewObjectServiceClient(conn)
+
+	bucket := "test_bucket"
+	{
+		bStorage := storage.NewBucketLocalFS("../../data")
+		bStorage.CreateBucket(ctx, ownerID.String()+"_"+bucket)
+		bRepo := repos.NewBucketRepo(cfg)
+		_, err := bRepo.CreateBucket(ownerID, bucket)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	requests := make([]*pb.LoadObjectRequest, 0, 5)
+	keys := make([]string, 0, 5)
+	filesContent := make([][]byte, 0, 5)
+	for i := range 5 {
+		key := fmt.Sprintf("key_n_%d.txt", i)
+		data := fmt.Appendf(nil, "data of file n_%d", i)
+		requests = append(requests, &pb.LoadObjectRequest{
+			Bucket: bucket,
+			Key:    key,
+			Data:   data,
+		})
+		keys = append(keys, key)
+		filesContent = append(filesContent, slices.Clone(data))
+	}
+	objects := make([]*models.Object, 0, 5)
+	t.Run("Saving objects", func(t *testing.T) {
+		for _, req := range requests {
+			_, err := client.LoadObject(ctx, req)
+			assert.NoError(t, err)
+		}
+	})
+	t.Run("Getting files' metadata", func(t *testing.T) {
+		for i := range 5 {
+			md := metadata.MD{}
+			_, err := client.GetObjectMD(ctx, &pb.ObjectInfoRequest{
+				Bucket: bucket,
+				Key:    keys[i],
+			}, grpc.Header(&md))
+			assert.NoError(t, err)
+
+			size, err := strconv.ParseUint(md.Get(services.ObjectSizeHeader)[0], 10, 64)
+			assert.NoError(t, err)
+
+			etag := md.Get(services.ObjectETagHeader)[0]
+
+			lastModified, err := time.Parse(time.RFC3339, md.Get(services.ObjectLastModifiedHeader)[0])
+			assert.NoError(t, err)
+			t.Logf("object n_%d: etag: %s, size: %d, lastModified: %v", i, etag, size, lastModified)
+			objects = append(objects, &models.Object{
+				Size:         size,
+				Etag:         etag,
+				LastModified: lastModified,
+			})
+		}
+	})
+	t.Run("Deleting object", func(t *testing.T) {
+		_, err := client.DeleteObject(ctx, &pb.DeleteObjectRequest{
+			Bucket: bucket,
+			Key:    keys[4],
+		})
+		assert.NoError(t, err)
+		keys = keys[:4]
+	})
+	t.Run("Getting object data", func(t *testing.T) {
+		resp, err := client.GetObject(ctx, &pb.GetObjectRequest{
+			Bucket: bucket,
+			Key:    keys[0],
+		})
+		assert.NoError(t, err)
+		assert.True(t, slices.Equal(resp.Data, filesContent[0]))
+	})
+	t.Run("Listing objects", func(t *testing.T) {
+		limit, offset := 3, 1
+		resp, err := client.ListObjects(ctx, &pb.ListObjectsRequest{
+			Bucket: bucket,
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		})
+		assert.NoError(t, err)
+		assert.True(t, resp.Bucket == bucket &&
+			resp.Count == 3 &&
+			resp.Limit == int32(limit) &&
+			resp.Offset == int32(offset))
+		for i, o := range resp.Content {
+			assert.True(t, o.Etag == objects[i+offset].Etag)
+			assert.True(t, o.Size == int64(objects[i+offset].Size))
+			assert.True(t, o.Key == keys[i+offset])
 		}
 	})
 }

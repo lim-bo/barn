@@ -1,4 +1,4 @@
-//protoc --go_out=paths=source_relative:./internal/services/pb --go-grpc_out=paths=source_relative:./internal/services/pb -I./proto  proto/services.proto
+//protoc --go_out=paths=source_relative:./internal/services/pb --go-grpc_out=paths=source_relative:./internal/services/pb --grpc-gateway_out=paths=source_relative:./internal/services/pb -I./proto  proto/services.proto
 //protoc --grpc-gateway_out=paths=source_relative:./internal/services/pb -I./proto proto/services.proto
 syntax = "proto3";
 package s3;
@@ -23,6 +23,13 @@ message Keys {
     string secret_key = 2;
 }
 
+message ObjectInfo {
+    string key = 1;
+    int64 size = 2;
+    string etag = 3;
+    string last_modified = 4;
+}
+
 // Services
 service BucketService {
 
@@ -39,6 +46,7 @@ service BucketService {
             response_body: "buckets"
         };
     }
+
     rpc DeleteBucket(DeleteBucketRequest) returns (DeleteBucketResponse) {
         option (google.api.http) = {
             delete: "/{name}"
@@ -119,4 +127,90 @@ message LoginRequest {
 
 message LoginResponse {
     Keys keys = 1;
+}
+
+service ObjectService {
+    rpc LoadObject(LoadObjectRequest) returns (LoadObjectResponse) {
+        option (google.api.http) = {
+            put: "/{bucket}/{key}"
+            body: "data"
+            response_body: "etag"
+        };
+    }
+
+    rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
+        option (google.api.http) = {
+            get: "/{bucket}/{key}"
+            response_body: "data"
+        };
+    }
+
+    rpc GetObjectMD(ObjectInfoRequest) returns (ObjectInfoResponse) {
+        option (google.api.http) = {
+            custom: {
+            kind: "HEAD"
+            path: "/{bucket}/{key}"
+           }
+        };
+    }
+
+    rpc DeleteObject(DeleteObjectRequest) returns (DeleteObjectResponse) {
+        option (google.api.http) = {
+            delete: "/{bucket}/{key}"
+        };
+    }
+
+    rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+        option (google.api.http) = {
+            get: "/{bucket}"
+            response_body: "*"
+        };
+    }
+}
+
+message LoadObjectRequest {
+    string bucket = 1;
+    string key = 2;
+    bytes data = 3;
+}
+
+message LoadObjectResponse {
+    string etag = 1;
+}
+
+message GetObjectRequest {
+    string bucket = 1;
+    string key = 2;
+}
+
+message GetObjectResponse {
+    bytes data = 1;
+}
+
+message ObjectInfoRequest {
+    string bucket = 1;
+    string key = 2;
+}
+
+message ObjectInfoResponse {}
+
+message DeleteObjectRequest {
+    string bucket = 1;
+    string key = 2;
+}
+
+message DeleteObjectResponse {}
+
+message ListObjectsRequest {
+    string bucket = 1;
+    int32 limit = 2;
+    int32 offset = 3;
+}
+
+message ListObjectsResponse {
+    string bucket = 1;
+    int32 count = 2;
+    int32 limit = 3;
+    int32 offset = 4;
+    repeated ObjectInfo content = 5;
 }
