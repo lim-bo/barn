@@ -72,7 +72,28 @@ services:
     restart: unless-stopped
     networks:
       - barn_data_network
-
+  object_service:
+    build:
+      context: ../
+      dockerfile: deploy/object_service/Dockerfile
+    image: barn_object_service
+    container_name: barn_object_container
+    ports:
+      - "50053:50053"
+    volumes:
+      - s3_data:/app/data
+    environment:
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+    networks:
+      - barn_data_network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
 networks:
   barn_data_network:
 

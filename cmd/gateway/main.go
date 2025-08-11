@@ -21,7 +21,9 @@ import (
 func main() {
 	cfg := settings.GetConfig()
 
-	gwMux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(headerMatcher))
+	gwMux := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(headerMatcher),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &OctetStreamMarshaller{}))
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
@@ -85,38 +87,4 @@ func main() {
 	log.Println("shutting down server...")
 	cleanup.CleanUp()
 	log.Println("server stopped")
-}
-
-func CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "X-Access-Key, X-Plain-Secret, X-Signature, X-Timestamp, Content-Type, "+
-			"X-Method, X-Path, X-Query")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-var (
-	allowedHeaders = map[string]bool{
-		"x-access-key":   true,
-		"x-plain-secret": true,
-		"x-signature":    true,
-		"x-timestamp":    true,
-		"x-method":       true,
-		"x-path":         true,
-	}
-)
-
-func headerMatcher(key string) (string, bool) {
-	if allowedHeaders[key] {
-		return key, true
-	}
-	return runtime.DefaultHeaderMatcher(key)
 }
