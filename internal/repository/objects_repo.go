@@ -124,3 +124,28 @@ func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string)
 	}
 	return nil
 }
+
+func (repo *ObjectsRepository) ListObjects(owner uuid.UUID, bucket string, offset int, limit int) ([]*models.Object, error) {
+	query := `SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON
+o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	rows, err := repo.conn.Query(ctx, query, owner, bucket, offset, limit)
+	if err != nil {
+		return nil, errors.New("error getting keys")
+	}
+	result := make([]*models.Object, 0, 2)
+	for rows.Next() {
+		obj := new(models.Object)
+		err = rows.Scan(&obj.Key, &obj.Size, &obj.Etag, &obj.LastModified)
+		if err != nil {
+			return nil, errors.New("error extraction values: " + err.Error())
+		}
+		result = append(result, obj)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.New("unexpected after-extraction error: " + err.Error())
+	}
+	return result, nil
+}

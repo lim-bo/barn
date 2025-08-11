@@ -2,6 +2,7 @@ package repos_test
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -125,6 +126,49 @@ func TestDeleteObject(t *testing.T) {
 	})
 }
 
+func TestListingObjects(t *testing.T) {
+	t.Parallel()
+	conn, err := pgxmock.NewConn()
+	if err != nil {
+		t.Fatal(err)
+	}
+	objRepo := repos.NewObjectsRepoWithConn(conn)
+	query := regexp.QuoteMeta(`SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON
+o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
+	bucket := "test_bucket"
+	rows := pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"})
+	ts := time.Now()
+	for i := range 10 {
+		key := fmt.Sprintf("key_n_%d", i)
+		rows.AddRow(key, uint64(i), fmt.Sprintf("\"etag_n_%d\"", i), ts.Add(time.Second*time.Duration(i)))
+	}
+	t.Run("successfully listed all", func(t *testing.T) {
+		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(rows)
+		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		assert.NoError(t, err)
+		for i, o := range result {
+			assert.True(t, func() bool {
+				return o.Key == fmt.Sprintf("key_n_%d", i) &&
+					o.Etag == fmt.Sprintf("\"etag_n_%d\"", i) &&
+					o.LastModified.Equal(ts.Add(time.Second*time.Duration(i))) &&
+					o.Size == uint64(i)
+			}())
+		}
+	})
+	// Offset + limit test is useless because of mock
+	t.Run("empty result", func(t *testing.T) {
+		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"}))
+		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		assert.NoError(t, err)
+		assert.True(t, len(result) == 0)
+	})
+	t.Run("db error", func(t *testing.T) {
+		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnError(errors.New("db error"))
+		_, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		assert.Error(t, err)
+	})
+}
+
 func TestObjectsIntegrational(t *testing.T) {
 	cfg := setupTestDB(t)
 	bucket := "test_bucket"
@@ -173,5 +217,30 @@ func TestObjectsIntegrational(t *testing.T) {
 	t.Run("Check if obj doesn't exist", func(t *testing.T) {
 		_, err := objRepo.GetObjectInfo(ownerID, bucket, obj.Key)
 		assert.ErrorIs(t, err, errvalues.ErrUnexistObject)
+	})
+
+	t.Run("Adding few elements", func(t *testing.T) {
+		for i := range 10 {
+			obj := models.Object{
+				Key:  fmt.Sprintf("key_n_%d", i),
+				Size: uint64(i),
+				Etag: fmt.Sprintf("\"etag_n_%d\"", i),
+			}
+			err = objRepo.SaveObject(ownerID, bucket, &obj)
+			assert.NoError(t, err)
+		}
+	})
+
+	t.Run("listing all", func(t *testing.T) {
+		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		assert.NoError(t, err)
+		for i, o := range result {
+			assert.Equal(t, fmt.Sprintf("key_n_%d", i), o.Key)
+		}
+	})
+	t.Run("listing with offset and limit", func(t *testing.T) {
+		result, err := objRepo.ListObjects(ownerID, bucket, 3, 5)
+		assert.NoError(t, err)
+		assert.True(t, len(result) == 5 && result[0].Key == fmt.Sprintf("key_n_%d", 3))
 	})
 }
