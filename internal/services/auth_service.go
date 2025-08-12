@@ -66,11 +66,16 @@ func (as *AuthService) LoginWithPassword(ctx context.Context, req *pb.LoginReque
 		return nil, status.Error(codes.PermissionDenied, "user has no password")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(req.Credentials.Password)); err != nil {
+		slog.Error("login request with incorrect password", slog.String("req_id", reqID), slog.String("uid", user.ID.String()))
 		return nil, status.Error(codes.Unauthenticated, "wrong password")
 	}
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
-	as.usersRepo.UpdateKeys(user.ID, accessKey, HashKey(secretKey))
+	err = as.usersRepo.UpdateKeys(user.ID, accessKey, HashKey(secretKey))
+	if err != nil {
+		slog.Error("failed to update user's keys", slog.String("error", err.Error()), slog.String("req_id", reqID))
+	}
+	slog.Info("successful login", slog.String("req_id", reqID), slog.String("uid", user.ID.String()))
 	return &pb.LoginResponse{
 		Keys: &pb.Keys{
 			AccessKey: accessKey,

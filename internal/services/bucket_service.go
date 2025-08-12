@@ -68,6 +68,7 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 	reqID := ctx.Value("Request-ID").(string)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
+		slog.Error("delete bucket request with invalid uid", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	err = bs.bucketsRepo.DeleteBucket(ownerID, req.Name)
@@ -89,6 +90,7 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 	reqID := ctx.Value("Request-ID").(string)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
+		slog.Error("listing buckets request with invalid uid", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	buckets, err := bs.bucketsRepo.ListAllBuckets(ownerID)
@@ -105,6 +107,7 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 			CreatedAt: b.CreatedAt.String(),
 		})
 	}
+	slog.Info("successfully listed buckets", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 	return &pb.ListAllBucketsResponse{
 		Buckets: result,
 	}, nil
@@ -114,6 +117,7 @@ func (bs *BucketService) CheckExistBucket(ctx context.Context, req *pb.CheckExis
 	reqID := ctx.Value("Request-ID").(string)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
+		slog.Error("check exist bucket request with invalid uid", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	exist, err := bs.bucketsRepo.CheckExist(ownerID, req.Name)
@@ -122,6 +126,7 @@ func (bs *BucketService) CheckExistBucket(ctx context.Context, req *pb.CheckExis
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if exist {
+		slog.Info("bucket found", slog.String("req_id", reqID), slog.String("uid", ownerID.String()))
 		return &pb.CheckExistBucketResponse{}, nil
 	}
 	return nil, status.Error(codes.NotFound, "bucket doesn't exist")
