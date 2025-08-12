@@ -48,10 +48,10 @@ func NewObjectService(objRepo ObjectRepository, objStorage storage.ObjectStorage
 }
 
 func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectRequest) (*pb.LoadObjectResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		slog.Error("incoming unauthorized request", slog.String("req_id", reqID))
+		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	fileData := bytes.NewReader(req.Data)
@@ -69,10 +69,7 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 	}()
 	wg.Wait()
 	if err != nil {
-		slog.Error("error saving file locally",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("error saving file locally", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "error writing object to storage")
 	}
 
@@ -82,60 +79,46 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 		Etag: etag,
 	})
 	if err != nil {
-		slog.Error("error saving file info in db",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("error saving file info in db", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "error saving object info")
 	}
-	slog.Info("object loaded", slog.String("uid", ownerID.String()),
-		slog.String("req_id", reqID))
+	logger.Info("object loaded")
 	return &pb.LoadObjectResponse{
 		Etag: etag,
 	}, nil
 }
 
 func (os *ObjectService) DeleteObject(ctx context.Context, req *pb.DeleteObjectRequest) (*pb.DeleteObjectResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		slog.Error("incoming unauthorized request", slog.String("req_id", reqID))
+		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	err = os.objStorage.DeleteObject(context.Background(), ownerID.String()+"_"+req.Bucket, req.Key)
 	if err != nil {
-		slog.Error("error deleting file locally",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("error deleting file locally", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to delete file")
 	}
 	err = os.objRepo.DeleteObject(ownerID, req.Bucket, req.Key)
 	if err != nil {
-		slog.Error("error deleting object info",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("error deleting object info", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to delete object data")
 	}
-	slog.Info("object deleted", slog.String("uid", ownerID.String()),
-		slog.String("req_id", reqID))
+	logger.Info("object deleted")
 	return &pb.DeleteObjectResponse{}, nil
 }
 
 func (os *ObjectService) GetObjectMD(ctx context.Context, req *pb.ObjectInfoRequest) (*pb.ObjectInfoResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		slog.Error("incoming unauthorized request", slog.String("req_id", reqID))
+		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	obj, err := os.objRepo.GetObjectInfo(ownerID, req.Bucket, req.Key)
 	if err != nil {
-		slog.Error("getting object info error",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("getting object info error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to get object metadata")
 	}
 	md := metadata.New(map[string]string{
@@ -145,61 +128,47 @@ func (os *ObjectService) GetObjectMD(ctx context.Context, req *pb.ObjectInfoRequ
 	})
 	err = grpc.SendHeader(ctx, md)
 	if err != nil {
-		slog.Error("error sending headers",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("error sending headers", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to set headers")
 	}
-	slog.Info("object metadata provided", slog.String("uid", ownerID.String()),
-		slog.String("req_id", reqID))
+	logger.Info("object metadata provided")
 	return &pb.ObjectInfoResponse{}, nil
 }
 
 func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		slog.Error("incoming unauthorized request", slog.String("req_id", reqID))
+		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	reader, err := os.objStorage.GetObject(context.Background(), ownerID.String()+"_"+req.Bucket, req.Key)
 	if err != nil {
-		slog.Error("getting file data error",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("getting file data error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to get file content")
 	}
 	defer reader.Close()
 	data, err := io.ReadAll(reader)
 	if err != nil {
-		slog.Error("reading file data error",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("reading file data error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to read data")
 	}
-	slog.Info("object provided", slog.String("uid", ownerID.String()),
-		slog.String("req_id", reqID))
+	logger.Info("object provided")
 	return &pb.GetObjectResponse{
 		Data: data,
 	}, nil
 }
 
 func (os *ObjectService) ListObjects(ctx context.Context, req *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
-		slog.Error("incoming unauthorized request", slog.String("req_id", reqID))
+		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
 	objects, err := os.objRepo.ListObjects(ownerID, req.Bucket, int(req.Offset), int(req.Limit))
 	if err != nil {
-		slog.Error("getting objects error",
-			slog.String("error", err.Error()),
-			slog.String("uid", ownerID.String()),
-			slog.String("req_id", reqID))
+		logger.Error("getting objects error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to get objects")
 	}
 	resp := pb.ListObjectsResponse{
@@ -217,7 +186,6 @@ func (os *ObjectService) ListObjects(ctx context.Context, req *pb.ListObjectsReq
 			LastModified: o.LastModified.Format(time.RFC3339),
 		})
 	}
-	slog.Info("list of object provided", slog.String("uid", ownerID.String()),
-		slog.String("req_id", reqID))
+	logger.Info("list of object provided")
 	return &resp, nil
 }

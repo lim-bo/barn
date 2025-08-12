@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"slices"
 	"strconv"
@@ -41,7 +42,9 @@ func TestAuthService(t *testing.T) {
 	lis := bufconn.Listen(bufSize)
 	ur := repos.NewUsersRepo(setupTestDB(t))
 
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		services.LoggerSettingInterceptor(slog.Default())))
 	as := services.NewAuthService(ur)
 	pb.RegisterAuthServiceServer(s, as)
 
@@ -103,7 +106,10 @@ func TestBucketService(t *testing.T) {
 	br := repos.NewBucketRepo(setupTestDB(t))
 	bStorage := storage.NewBucketLocalFS("../../data")
 	// Registering new server
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, authInterceptorPlaceholder))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		authInterceptorPlaceholder,
+		services.LoggerSettingInterceptor(slog.Default())))
 	bs := services.NewBucketService(br, bStorage)
 	pb.RegisterBucketServiceServer(s, bs)
 
@@ -186,7 +192,10 @@ func TestObjectService(t *testing.T) {
 	oStorage := storage.NewLocalFS("../../data")
 
 	// Registering new server
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, authInterceptorPlaceholder))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		authInterceptorPlaceholder,
+		services.LoggerSettingInterceptor(slog.Default())))
 	os := services.NewObjectService(br, oStorage)
 	pb.RegisterObjectServiceServer(s, os)
 

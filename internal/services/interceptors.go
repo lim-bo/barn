@@ -33,3 +33,20 @@ func AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 	ctx = context.WithValue(ctx, "Owner-ID", authHeader[0])
 	return handler(ctx, req)
 }
+
+func LoggerSettingInterceptor(baseLogger *slog.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		reqLogger := baseLogger.With()
+		reqID, ok := ctx.Value(contextRequestIDKey).(string)
+		if ok && reqID != "" {
+			reqLogger = reqLogger.With(slog.String("req_id", reqID))
+		}
+
+		uid, ok := ctx.Value(contextUserIDKey).(string)
+		if ok && uid != "" {
+			reqLogger = reqLogger.With(slog.String("uid", uid))
+		}
+		ctx = context.WithValue(ctx, "logger", reqLogger)
+		return handler(ctx, req)
+	}
+}

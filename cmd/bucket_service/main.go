@@ -41,7 +41,11 @@ func main() {
 	sigValidator := services.NewSignatureValidator(usersRepo)
 
 	bs := services.NewBucketService(bucketsRepo, storageEngine)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, sigValidator.AuthInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		sigValidator.AuthInterceptor,
+		services.LoggerSettingInterceptor(slog.Default()),
+	))
 	pb.RegisterBucketServiceServer(s, bs)
 
 	cleanup.Register(&cleanup.Job{

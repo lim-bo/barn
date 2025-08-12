@@ -32,7 +32,7 @@ func NewAuthService(ur UsersRepositoryI) *AuthService {
 }
 
 func (as *AuthService) RegisterWithKeys(ctx context.Context, req *emptypb.Empty) (*pb.RegisterResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
 	user := models.User{
@@ -42,10 +42,10 @@ func (as *AuthService) RegisterWithKeys(ctx context.Context, req *emptypb.Empty)
 	}
 	err := as.usersRepo.Create(&user)
 	if err != nil {
-		slog.Error("error creating new user", slog.String("error", err.Error()), slog.String("req_id", reqID))
+		logger.Error("error creating new user", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Unauthenticated, "creating user error")
 	}
-	slog.Info("new user registered with keys", slog.String("req_id", reqID))
+	logger.Info("new user registered with keys")
 	return &pb.RegisterResponse{
 		Keys: &pb.Keys{
 			AccessKey: accessKey,
@@ -55,27 +55,27 @@ func (as *AuthService) RegisterWithKeys(ctx context.Context, req *emptypb.Empty)
 }
 
 func (as *AuthService) LoginWithPassword(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	user, err := as.usersRepo.GetByUsername(req.Credentials.Username)
 	if err != nil {
-		slog.Error("error getting user by name", slog.String("error", err.Error()), slog.String("req_id", reqID))
+		logger.Error("error getting user by name", slog.String("error", err.Error()))
 		return nil, status.Error(codes.NotFound, "getting user error")
 	}
 	if user.PasswordHash == nil {
-		slog.Error("login request for user with no password", slog.String("req_id", reqID))
+		logger.Error("login request for user with no password")
 		return nil, status.Error(codes.PermissionDenied, "user has no password")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(req.Credentials.Password)); err != nil {
-		slog.Error("login request with incorrect password", slog.String("req_id", reqID), slog.String("uid", user.ID.String()))
+		logger.Error("login request with incorrect password", slog.String("uid", user.ID.String()))
 		return nil, status.Error(codes.Unauthenticated, "wrong password")
 	}
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
 	err = as.usersRepo.UpdateKeys(user.ID, accessKey, HashKey(secretKey))
 	if err != nil {
-		slog.Error("failed to update user's keys", slog.String("error", err.Error()), slog.String("req_id", reqID))
+		logger.Error("failed to update user's keys", slog.String("error", err.Error()))
 	}
-	slog.Info("successful login", slog.String("req_id", reqID), slog.String("uid", user.ID.String()))
+	logger.Info("successful login", slog.String("uid", user.ID.String()))
 	return &pb.LoginResponse{
 		Keys: &pb.Keys{
 			AccessKey: accessKey,
@@ -85,7 +85,7 @@ func (as *AuthService) LoginWithPassword(ctx context.Context, req *pb.LoginReque
 }
 
 func (as *AuthService) RegisterWithPassword(ctx context.Context, req *pb.RegisterWithPasswordRequest) (*pb.RegisterResponse, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	logger := ctx.Value("logger").(*slog.Logger)
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
 	passHash := HashKey(req.Credentials.Password)
@@ -98,10 +98,10 @@ func (as *AuthService) RegisterWithPassword(ctx context.Context, req *pb.Registe
 	}
 	err := as.usersRepo.Create(&user)
 	if err != nil {
-		slog.Error("error creating new user", slog.String("error", err.Error()), slog.String("req_id", reqID))
+		logger.Error("error creating new user", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Unauthenticated, "creating user error")
 	}
-	slog.Info("new user registered with creds", slog.String("req_id", reqID))
+	logger.Info("new user registered with creds")
 	return &pb.RegisterResponse{
 		Keys: &pb.Keys{
 			AccessKey: accessKey,

@@ -40,7 +40,11 @@ func main() {
 	sigValidator := services.NewSignatureValidator(usersRepo)
 
 	objService := services.NewObjectService(objRepository, storageEngine)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor, sigValidator.AuthInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		sigValidator.AuthInterceptor,
+		services.LoggerSettingInterceptor(slog.Default()),
+	))
 	pb.RegisterObjectServiceServer(s, objService)
 
 	cleanup.Register(&cleanup.Job{

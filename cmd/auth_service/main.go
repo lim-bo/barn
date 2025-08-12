@@ -30,7 +30,10 @@ func main() {
 	})
 
 	as := services.NewAuthService(usersRepo)
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(services.RequestIDInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		services.LoggerSettingInterceptor(slog.Default()),
+	))
 	pb.RegisterAuthServiceServer(s, as)
 
 	cleanup.Register(&cleanup.Job{

@@ -33,14 +33,15 @@ func NewSignatureValidator(repo UsersByAccessKeyRepository) *SignatureValidator 
 }
 
 const (
-	headerAccessKey  = "x-access-key"
-	headerSecret     = "x-plain-secret"
-	headerSignature  = "x-signature"
-	contextUserIDKey = "Owner-ID"
+	headerAccessKey     = "x-access-key"
+	headerSecret        = "x-plain-secret"
+	headerSignature     = "x-signature"
+	contextUserIDKey    = "Owner-ID"
+	contextRequestIDKey = "Request-ID"
 )
 
 func (sv *SignatureValidator) AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	reqID := ctx.Value("Request-ID").(string)
+	reqID := ctx.Value(contextRequestIDKey).(string)
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "lack of headers")

@@ -28,7 +28,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		err := pb.RegisterAuthServiceHandlerFromEndpoint(context.Background(),
@@ -48,6 +48,17 @@ func main() {
 			opts)
 		if err != nil {
 			log.Fatal("error registering bucket service: ", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := pb.RegisterObjectServiceHandlerFromEndpoint(context.Background(),
+			gwMux,
+			cfg.GetString("object_service.mask_address"),
+			opts)
+		if err != nil {
+			log.Fatal("error registering object service: ", err)
 		}
 	}()
 	wg.Wait()
