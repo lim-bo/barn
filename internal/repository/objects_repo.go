@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lim-bo/barn/internal/errvalues"
+	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/pkg/cleanup"
 	"github.com/lim-bo/barn/pkg/models"
 )
@@ -125,12 +126,12 @@ func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string)
 	return nil
 }
 
-func (repo *ObjectsRepository) ListObjects(owner uuid.UUID, bucket string, offset int, limit int) ([]*models.Object, error) {
+func (repo *ObjectsRepository) ListObjects(owner uuid.UUID, bucket string, opts *services.PaginationOpts) ([]*models.Object, error) {
 	query := `SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON
 o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	rows, err := repo.conn.Query(ctx, query, owner, bucket, offset, limit)
+	rows, err := repo.conn.Query(ctx, query, owner, bucket, opts.Offset, opts.Limit)
 	if err != nil {
 		return nil, errors.New("error getting keys")
 	}

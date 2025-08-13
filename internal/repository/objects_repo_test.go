@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/lim-bo/barn/internal/errvalues"
 	repos "github.com/lim-bo/barn/internal/repository"
+	"github.com/lim-bo/barn/internal/services"
 	"github.com/lim-bo/barn/pkg/models"
 	"github.com/pashagolub/pgxmock/v2"
 	"github.com/stretchr/testify/assert"
@@ -144,7 +145,10 @@ o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
 	}
 	t.Run("successfully listed all", func(t *testing.T) {
 		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(rows)
-		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 0,
+			Limit:  10,
+		})
 		assert.NoError(t, err)
 		for i, o := range result {
 			assert.True(t, func() bool {
@@ -158,13 +162,19 @@ o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
 	// Offset + limit test is useless because of mock
 	t.Run("empty result", func(t *testing.T) {
 		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"}))
-		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 0,
+			Limit:  10,
+		})
 		assert.NoError(t, err)
 		assert.True(t, len(result) == 0)
 	})
 	t.Run("db error", func(t *testing.T) {
 		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnError(errors.New("db error"))
-		_, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		_, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 0,
+			Limit:  10,
+		})
 		assert.Error(t, err)
 	})
 }
@@ -232,14 +242,20 @@ func TestObjectsIntegrational(t *testing.T) {
 	})
 
 	t.Run("listing all", func(t *testing.T) {
-		result, err := objRepo.ListObjects(ownerID, bucket, 0, 10)
+		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 0,
+			Limit:  10,
+		})
 		assert.NoError(t, err)
 		for i, o := range result {
 			assert.Equal(t, fmt.Sprintf("key_n_%d", i), o.Key)
 		}
 	})
 	t.Run("listing with offset and limit", func(t *testing.T) {
-		result, err := objRepo.ListObjects(ownerID, bucket, 3, 5)
+		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 3,
+			Limit:  5,
+		})
 		assert.NoError(t, err)
 		assert.True(t, len(result) == 5 && result[0].Key == fmt.Sprintf("key_n_%d", 3))
 	})

@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"math"
 	"strconv"
 	"sync"
 	"time"
@@ -26,11 +27,16 @@ const (
 	ObjectLastModifiedHeader = "last-modified"
 )
 
+type PaginationOpts struct {
+	Offset int
+	Limit  int
+}
+
 type ObjectRepository interface {
 	SaveObject(owner uuid.UUID, bucket string, obj *models.Object) error
 	GetObjectInfo(owner uuid.UUID, bucket, key string) (*models.Object, error)
 	DeleteObject(owner uuid.UUID, bucket, key string) error
-	ListObjects(owner uuid.UUID, bucket string, offset int, limit int) ([]*models.Object, error)
+	ListObjects(owner uuid.UUID, bucket string, opts *PaginationOpts) ([]*models.Object, error)
 }
 
 type ObjectService struct {
@@ -172,7 +178,14 @@ func (os *ObjectService) ListObjects(ctx context.Context, req *pb.ListObjectsReq
 		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	objects, err := os.objRepo.ListObjects(ownerID, req.Bucket, int(req.Offset), int(req.Limit))
+	var limit int
+	if req.Limit == 0 {
+		limit = math.MaxInt
+	}
+	objects, err := os.objRepo.ListObjects(ownerID, req.Bucket, &PaginationOpts{
+		Offset: int(req.Offset),
+		Limit:  limit,
+	})
 	if err != nil {
 		logger.Error("getting objects error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to get objects")
