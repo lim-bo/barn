@@ -1,12 +1,18 @@
 package services
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	loggerContextKey = "logger"
 )
 
 func GenerateAccessKey() string {
@@ -29,4 +35,11 @@ func HashKey(key string) string {
 
 func GenerateEtag(data []byte) string {
 	return fmt.Sprintf("\"%x\"", md5.Sum(data))
+}
+
+func LoggerFromContext(ctx context.Context) *slog.Logger {
+	if logger, ok := ctx.Value(loggerContextKey).(*slog.Logger); ok {
+		return logger
+	}
+	return slog.Default()
 }

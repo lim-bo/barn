@@ -32,7 +32,7 @@ func NewAuthService(ur UsersRepositoryI) *AuthService {
 }
 
 func (as *AuthService) RegisterWithKeys(ctx context.Context, req *emptypb.Empty) (*pb.RegisterResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
 	user := models.User{
@@ -55,7 +55,7 @@ func (as *AuthService) RegisterWithKeys(ctx context.Context, req *emptypb.Empty)
 }
 
 func (as *AuthService) LoginWithPassword(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	user, err := as.usersRepo.GetByUsername(req.Credentials.Username)
 	if err != nil {
 		logger.Error("error getting user by name", slog.String("error", err.Error()))
@@ -85,7 +85,7 @@ func (as *AuthService) LoginWithPassword(ctx context.Context, req *pb.LoginReque
 }
 
 func (as *AuthService) RegisterWithPassword(ctx context.Context, req *pb.RegisterWithPasswordRequest) (*pb.RegisterResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	accessKey := GenerateAccessKey()
 	secretKey := GenerateSecretKey()
 	passHash := HashKey(req.Credentials.Password)

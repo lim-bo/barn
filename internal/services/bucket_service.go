@@ -35,7 +35,7 @@ func NewBucketService(br BucketsRepositoryI, bucketStorage storage.BucketStorage
 }
 
 func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketRequest) (*pb.CreateBucketResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("create bucket request with invalid uid")
@@ -64,7 +64,7 @@ func (bs *BucketService) CreateBucket(ctx context.Context, req *pb.CreateBucketR
 }
 
 func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketRequest) (*pb.DeleteBucketResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("delete bucket request with invalid uid")
@@ -86,7 +86,7 @@ func (bs *BucketService) DeleteBucket(ctx context.Context, req *pb.DeleteBucketR
 }
 
 func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBucketsRequest) (*pb.ListAllBucketsResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("listing buckets request with invalid uid")
@@ -113,7 +113,7 @@ func (bs *BucketService) ListAllBuckets(ctx context.Context, req *pb.ListAllBuck
 }
 
 func (bs *BucketService) CheckExistBucket(ctx context.Context, req *pb.CheckExistBucketRequest) (*pb.CheckExistBucketResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("check exist bucket request with invalid uid")

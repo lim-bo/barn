@@ -48,7 +48,7 @@ func NewObjectService(objRepo ObjectRepository, objStorage storage.ObjectStorage
 }
 
 func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectRequest) (*pb.LoadObjectResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("incoming unauthorized request")
@@ -89,7 +89,7 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 }
 
 func (os *ObjectService) DeleteObject(ctx context.Context, req *pb.DeleteObjectRequest) (*pb.DeleteObjectResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("incoming unauthorized request")
@@ -110,7 +110,7 @@ func (os *ObjectService) DeleteObject(ctx context.Context, req *pb.DeleteObjectR
 }
 
 func (os *ObjectService) GetObjectMD(ctx context.Context, req *pb.ObjectInfoRequest) (*pb.ObjectInfoResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("incoming unauthorized request")
@@ -136,7 +136,7 @@ func (os *ObjectService) GetObjectMD(ctx context.Context, req *pb.ObjectInfoRequ
 }
 
 func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("incoming unauthorized request")
@@ -160,7 +160,7 @@ func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest
 }
 
 func (os *ObjectService) ListObjects(ctx context.Context, req *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
-	logger := ctx.Value("logger").(*slog.Logger)
+	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
 		logger.Error("incoming unauthorized request")
