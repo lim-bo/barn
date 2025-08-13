@@ -23,14 +23,18 @@ func main() {
 
 	gwMux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(headerMatcher),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &OctetStreamMarshaller{}))
+		runtime.WithMarshalerOption("application/octet-stream", &OctetStreamMarshaller{}),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}))
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
+	mu := sync.Mutex{}
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
+		mu.Lock()
+		defer mu.Unlock()
 		err := pb.RegisterAuthServiceHandlerFromEndpoint(context.Background(),
 			gwMux,
 			cfg.GetString("auth_service.mask_address"),
@@ -42,6 +46,8 @@ func main() {
 
 	go func() {
 		defer wg.Done()
+		mu.Lock()
+		defer mu.Unlock()
 		err := pb.RegisterBucketServiceHandlerFromEndpoint(context.Background(),
 			gwMux,
 			cfg.GetString("bucket_service.mask_address"),
@@ -53,6 +59,8 @@ func main() {
 
 	go func() {
 		defer wg.Done()
+		mu.Lock()
+		defer mu.Unlock()
 		err := pb.RegisterObjectServiceHandlerFromEndpoint(context.Background(),
 			gwMux,
 			cfg.GetString("object_service.mask_address"),

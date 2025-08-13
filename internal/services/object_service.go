@@ -153,6 +153,12 @@ func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest
 		logger.Error("reading file data error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to read data")
 	}
+	md := metadata.Pairs("Content-Type", "application/octet-stream")
+	err = grpc.SendHeader(ctx, md)
+	if err != nil {
+		logger.Error("sending header error", slog.String("error", err.Error()))
+		return nil, status.Error(codes.Internal, "failed to set headers")
+	}
 	logger.Info("object provided")
 	return &pb.GetObjectResponse{
 		Data: data,
