@@ -46,7 +46,6 @@ func (sv *SignatureValidator) AuthInterceptor(ctx context.Context, req any, info
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "lack of headers")
 	}
-	slog.Debug("headers", slog.Any("access_key", md.Get(headerAccessKey)), slog.Any("secret", md.Get(headerSecret)), slog.Any("sign", md.Get(headerSignature)))
 	if len(md.Get(headerAccessKey)) != 1 || len(md.Get(headerSecret)) != 1 || len(md.Get(headerSignature)) != 1 {
 		slog.Error("auth failed: invalid headers", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, "invalid auth headers")
@@ -85,7 +84,7 @@ func getHMACSignature(ctx context.Context, secretKey string) string {
 	path := getHeader(md, "x-path")
 	query := getHeader(md, "x-query")
 	timestamp := getHeader(md, "x-timestamp")
-	slog.Debug("signature values", slog.String("method", method), slog.String("path", path), slog.String("query", query), slog.String("ts", timestamp))
+	slog.Info("request info", slog.String("path", path), slog.String("method", method))
 	var b strings.Builder
 	b.WriteString(method + "\n")
 	b.WriteString(path + "\n")

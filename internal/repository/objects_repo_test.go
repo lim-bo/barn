@@ -134,8 +134,7 @@ func TestListingObjects(t *testing.T) {
 		t.Fatal(err)
 	}
 	objRepo := repos.NewObjectsRepoWithConn(conn)
-	query := regexp.QuoteMeta(`SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON
-o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
+	query := regexp.QuoteMeta(`SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON o.bucket_id = b.id WHERE b.name = $1 AND b.owner_id = $2 LIMIT 10`)
 	bucket := "test_bucket"
 	rows := pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"})
 	ts := time.Now()
@@ -144,7 +143,7 @@ o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
 		rows.AddRow(key, uint64(i), fmt.Sprintf("\"etag_n_%d\"", i), ts.Add(time.Second*time.Duration(i)))
 	}
 	t.Run("successfully listed all", func(t *testing.T) {
-		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(rows)
+		conn.ExpectQuery(query).WithArgs(bucket, ownerID.String()).WillReturnRows(rows)
 		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
 			Offset: 0,
 			Limit:  10,
@@ -161,7 +160,7 @@ o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`)
 	})
 	// Offset + limit test is useless because of mock
 	t.Run("empty result", func(t *testing.T) {
-		conn.ExpectQuery(query).WithArgs(ownerID, bucket, 0, 10).WillReturnRows(pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"}))
+		conn.ExpectQuery(query).WithArgs(bucket, ownerID.String()).WillReturnRows(pgxmock.NewRows([]string{"key", "size", "etag", "last_modified"}))
 		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
 			Offset: 0,
 			Limit:  10,
@@ -257,6 +256,18 @@ func TestObjectsIntegrational(t *testing.T) {
 			Limit:  5,
 		})
 		assert.NoError(t, err)
-		assert.True(t, len(result) == 5 && result[0].Key == fmt.Sprintf("key_n_%d", 3))
+		assert.Equal(t, 5, len(result))
+		assert.Equal(t, fmt.Sprintf("key_n_%d", 3), result[0].Key)
+		fmt.Printf("first object: %v", result[0])
+	})
+	t.Run("listing with offset and no limit", func(t *testing.T) {
+		result, err := objRepo.ListObjects(ownerID, bucket, &services.PaginationOpts{
+			Offset: 3,
+			Limit:  0,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, 7, len(result))
+		assert.Equal(t, fmt.Sprintf("key_n_%d", 3), result[0].Key)
+		fmt.Printf("first object: %v", result[0])
 	})
 }

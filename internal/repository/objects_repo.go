@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -127,22 +128,30 @@ func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string)
 }
 
 func (repo *ObjectsRepository) ListObjects(owner uuid.UUID, bucket string, opts *services.PaginationOpts) ([]*models.Object, error) {
-	query := `SELECT key, size, etag, last_modified FROM objects o INNER JOIN buckets b ON
-o.bucket_id = b.id WHERE b.owner_id = $1 AND b.name = $2 OFFSET $3 LIMIT $4;`
+	query := `SELECT o.key, o.size, o.etag, o.last_modified 
+FROM objects o INNER JOIN buckets b ON o.bucket_id = b.id WHERE b.name = $1 AND b.owner_id = $2`
+	if opts != nil {
+		if opts.Limit > 0 {
+			query += fmt.Sprintf(" LIMIT %d", opts.Limit)
+		}
+		if opts.Offset > 0 {
+			query += fmt.Sprintf(" OFFSET %d", opts.Offset)
+		}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	rows, err := repo.conn.Query(ctx, query, owner, bucket, opts.Offset, opts.Limit)
+	rows, err := repo.conn.Query(ctx, query, bucket, owner)
 	if err != nil {
-		return nil, errors.New("error getting keys")
+		return nil, errors.New("error getting keys: " + err.Error())
 	}
 	result := make([]*models.Object, 0, 2)
 	for rows.Next() {
-		obj := new(models.Object)
+		obj := models.Object{}
 		err = rows.Scan(&obj.Key, &obj.Size, &obj.Etag, &obj.LastModified)
 		if err != nil {
 			return nil, errors.New("error extraction values: " + err.Error())
 		}
-		result = append(result, obj)
+		result = append(result, &obj)
 	}
 	err = rows.Err()
 	if err != nil {

@@ -300,10 +300,10 @@ func TestObjectService(t *testing.T) {
 			Offset: int32(offset),
 		})
 		assert.NoError(t, err)
-		assert.True(t, resp.Bucket == bucket &&
-			resp.Count == 3 &&
-			resp.Limit == int32(limit) &&
-			resp.Offset == int32(offset))
+		assert.Equal(t, bucket, resp.Bucket)
+		assert.EqualValues(t, 3, resp.Count)
+		assert.EqualValues(t, limit, resp.Limit)
+		assert.EqualValues(t, offset, resp.Offset)
 		for i, o := range resp.Content {
 			assert.True(t, o.Etag == objects[i+offset].Etag)
 			assert.True(t, o.Size == int64(objects[i+offset].Size))

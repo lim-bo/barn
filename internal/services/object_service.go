@@ -62,7 +62,7 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 	}
 	fileData := bytes.NewReader(req.Data)
 	var etag string
-
+	slog.Debug("values", slog.String("key", req.Key), slog.String("bucket", req.Bucket))
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
