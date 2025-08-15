@@ -1,13 +1,16 @@
 package main
 
 import (
-	"bytes"
-	"errors"
+	"encoding/json"
 	"io"
-	"mime"
+	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/lim-bo/barn/internal/services/pb"
+	"google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/grpc/metadata"
 )
 
 func CORSMiddleware(next http.Handler) http.Handler {
@@ -34,63 +37,53 @@ var (
 		"x-timestamp":    true,
 		"x-method":       true,
 		"x-path":         true,
+		"content-type":   true,
+		"content-lenght": true,
+		"etag":           true,
+		"last-modified":  true,
 	}
 )
 
 func headerMatcher(key string) (string, bool) {
-	if allowedHeaders[key] {
+	if allowedHeaders[strings.ToLower(key)] {
 		return key, true
 	}
 	return runtime.DefaultHeaderMatcher(key)
 }
 
-type OctetStreamMarshaller struct {
-}
-
-func (m *OctetStreamMarshaller) Marshal(v interface{}) ([]byte, error) {
-	if b, ok := v.([]byte); ok {
-		return b, nil
-	}
-	return nil, errors.New("unsupported type")
-}
-
-func (m *OctetStreamMarshaller) ContentType(v interface{}) string {
-	return "application/octet-stream"
-}
-
-func (m *OctetStreamMarshaller) Unmarshal(data []byte, v interface{}) error {
-	if p, ok := v.(*[]byte); ok {
-		*p = append((*p)[0:0], data...)
-		return nil
-	}
-	return errors.New("unsupported type")
-}
-
-func (m *OctetStreamMarshaller) NewDecoder(r io.Reader) runtime.Decoder {
-	return runtime.DecoderFunc(func(v interface{}) error {
-		if p, ok := v.(*[]byte); ok {
-			buf := new(bytes.Buffer)
-			_, err := io.Copy(buf, r)
-			if err != nil {
-				return err
-			}
-			*p = buf.Bytes()
-			return nil
+func binaryRequestHandler(objClient pb.ObjectServiceClient) func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "error accepting body", http.StatusBadRequest)
+			slog.Error("error ")
+			return
 		}
-		return errors.New("unsupported type")
-	})
-}
-
-func (m *OctetStreamMarshaller) NewEncoder(w io.Writer) runtime.Encoder {
-	return runtime.EncoderFunc(func(v interface{}) error {
-		if b, ok := v.([]byte); ok {
-			_, err := w.Write(b)
-			return err
+		md := metadata.MD{
+			"x-plain-secret": []string{r.Header.Get("Grpc-Metadata-X-Plain-Secret")},
+			"x-access-key":   []string{r.Header.Get("Grpc-Metadata-X-Access-Key")},
+			"x-signature":    []string{r.Header.Get("Grpc-Metadata-X-Signature")},
+			"x-method":       []string{r.Header.Get("Grpc-Metadata-X-Method")},
+			"x-path":         []string{r.Header.Get("Grpc-Metadata-X-Path")},
+			"x-query":        []string{r.Header.Get("Grpc-Metadata-X-Query")},
+			"x-timestamp":    []string{r.Header.Get("Grpc-Metadata-X-Timestamp")},
 		}
-		return errors.New("unsupported type")
-	})
-}
+		ctx := metadata.NewOutgoingContext(r.Context(), md)
+		resp, err := objClient.LoadObject(ctx, &pb.LoadObjectRequest{
+			Bucket: pathParams["bucket"],
+			Key:    pathParams["key"],
+			Body: &httpbody.HttpBody{
+				ContentType: "application/octet-stream",
+				Data:        data,
+			},
+		})
+		if err != nil {
+			http.Error(w, "failed to save object", http.StatusBadGateway)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"etag": resp.Etag,
+		})
+	}
 
-func (m *OctetStreamMarshaller) ContentTypeFromMessage(v interface{}) (string, error) {
-	return mime.TypeByExtension(".bin"), nil
 }

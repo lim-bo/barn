@@ -21,10 +21,29 @@ import (
 func main() {
 	cfg := settings.GetConfig()
 
+	// Preparing mux
 	gwMux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(headerMatcher),
-		runtime.WithMarshalerOption("application/octet-stream", &OctetStreamMarshaller{}),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}))
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{Marshaler: &runtime.JSONPb{}}),
+	)
+
+	conn, err := grpc.NewClient(
+		cfg.GetString("object_service.mask_address"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cleanup.Register(&cleanup.Job{
+		Name: "Closing object service client",
+		Func: func() error {
+			return conn.Close()
+		},
+	})
+	objClient := pb.NewObjectServiceClient(conn)
+	gwMux.HandlePath(http.MethodPut, "/{bucket}/{key}", binaryRequestHandler(objClient))
+
+	// Registering services
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
@@ -71,6 +90,7 @@ func main() {
 	}()
 	wg.Wait()
 
+	// Running
 	addr := cfg.GetString("gateway.address")
 	server := &http.Server{
 		Addr:    addr,

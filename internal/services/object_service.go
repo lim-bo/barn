@@ -15,6 +15,7 @@ import (
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/storage"
 	"github.com/lim-bo/barn/pkg/models"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -60,9 +61,10 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 		logger.Error("incoming unauthorized request")
 		return nil, status.Error(codes.Unauthenticated, errvalues.ErrInvalidUID.Error())
 	}
-	fileData := bytes.NewReader(req.Data)
+	rawData := bytes.Clone(req.Body.Data)
+	fileData := bytes.NewReader(rawData)
 	var etag string
-	slog.Debug("values", slog.String("key", req.Key), slog.String("bucket", req.Bucket))
+	slog.Debug("values", slog.String("key", req.Key), slog.String("bucket", req.Bucket), slog.Any("data", rawData))
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
@@ -71,7 +73,7 @@ func (os *ObjectService) LoadObject(ctx context.Context, req *pb.LoadObjectReque
 	}()
 	go func() {
 		defer wg.Done()
-		etag = GenerateEtag(req.Data)
+		etag = GenerateEtag(rawData)
 	}()
 	wg.Wait()
 	if err != nil {
@@ -141,7 +143,7 @@ func (os *ObjectService) GetObjectMD(ctx context.Context, req *pb.ObjectInfoRequ
 	return &pb.ObjectInfoResponse{}, nil
 }
 
-func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
+func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest) (*httpbody.HttpBody, error) {
 	logger := LoggerFromContext(ctx)
 	ownerID, err := uuid.Parse(ctx.Value("Owner-ID").(string))
 	if err != nil {
@@ -159,15 +161,16 @@ func (os *ObjectService) GetObject(ctx context.Context, req *pb.GetObjectRequest
 		logger.Error("reading file data error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to read data")
 	}
+	logger.Info("object provided")
 	md := metadata.Pairs("Content-Type", "application/octet-stream")
 	err = grpc.SendHeader(ctx, md)
 	if err != nil {
 		logger.Error("sending header error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to set headers")
 	}
-	logger.Info("object provided")
-	return &pb.GetObjectResponse{
-		Data: data,
+	return &httpbody.HttpBody{
+		ContentType: "application/octet-stream",
+		Data:        data,
 	}, nil
 }
 

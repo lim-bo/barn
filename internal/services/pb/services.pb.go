@@ -11,6 +11,7 @@ package pb
 
 import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -775,7 +776,7 @@ type LoadObjectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
 	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-	Data          []byte                 `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	Body          *httpbody.HttpBody     `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -824,9 +825,9 @@ func (x *LoadObjectRequest) GetKey() string {
 	return ""
 }
 
-func (x *LoadObjectRequest) GetData() []byte {
+func (x *LoadObjectRequest) GetBody() *httpbody.HttpBody {
 	if x != nil {
-		return x.Data
+		return x.Body
 	}
 	return nil
 }
@@ -1287,7 +1288,7 @@ var File_services_proto protoreflect.FileDescriptor
 
 const file_services_proto_rawDesc = "" +
 	"\n" +
-	"\x0eservices.proto\x12\x02s3\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"f\n" +
+	"\x0eservices.proto\x12\x02s3\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x19google/api/httpbody.proto\"f\n" +
 	"\x06Bucket\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
@@ -1330,11 +1331,11 @@ const file_services_proto_rawDesc = "" +
 	"\fLoginRequest\x125\n" +
 	"\vcredentials\x18\x01 \x01(\v2\x13.s3.UserCredentialsR\vcredentials\"-\n" +
 	"\rLoginResponse\x12\x1c\n" +
-	"\x04keys\x18\x01 \x01(\v2\b.s3.KeysR\x04keys\"Q\n" +
+	"\x04keys\x18\x01 \x01(\v2\b.s3.KeysR\x04keys\"g\n" +
 	"\x11LoadObjectRequest\x12\x16\n" +
 	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key\x12\x12\n" +
-	"\x04data\x18\x03 \x01(\fR\x04data\"(\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12(\n" +
+	"\x04body\x18\x03 \x01(\v2\x14.google.api.HttpBodyR\x04body\"(\n" +
 	"\x12LoadObjectResponse\x12\x12\n" +
 	"\x04etag\x18\x01 \x01(\tR\x04etag\"<\n" +
 	"\x10GetObjectRequest\x12\x16\n" +
@@ -1369,11 +1370,11 @@ const file_services_proto_rawDesc = "" +
 	"\vAuthService\x12^\n" +
 	"\x10RegisterWithKeys\x12\x16.google.protobuf.Empty\x1a\x14.s3.RegisterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16b\x04keys\"\x0e/auth/register\x12}\n" +
 	"\x14RegisterWithPassword\x12\x1f.s3.RegisterWithPasswordRequest\x1a\x14.s3.RegisterResponse\".\x82\xd3\xe4\x93\x02(:\vcredentialsb\x04keys\"\x13/auth/register-pass\x12`\n" +
-	"\x11LoginWithPassword\x12\x10.s3.LoginRequest\x1a\x11.s3.LoginResponse\"&\x82\xd3\xe4\x93\x02 :\vcredentialsb\x04keys\"\v/auth/login2\xdb\x03\n" +
-	"\rObjectService\x12`\n" +
+	"\x11LoginWithPassword\x12\x10.s3.LoginRequest\x1a\x11.s3.LoginResponse\"&\x82\xd3\xe4\x93\x02 :\vcredentialsb\x04keys\"\v/auth/login2\xb1\x03\n" +
+	"\rObjectService\x12=\n" +
 	"\n" +
-	"LoadObject\x12\x15.s3.LoadObjectRequest\x1a\x16.s3.LoadObjectResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x04datab\x04etag\x1a\x0f/{bucket}/{key}\x12W\n" +
-	"\tGetObject\x12\x14.s3.GetObjectRequest\x1a\x15.s3.GetObjectResponse\"\x1d\x82\xd3\xe4\x93\x02\x17b\x04data\x12\x0f/{bucket}/{key}\x12]\n" +
+	"LoadObject\x12\x15.s3.LoadObjectRequest\x1a\x16.s3.LoadObjectResponse\"\x00\x12P\n" +
+	"\tGetObject\x12\x14.s3.GetObjectRequest\x1a\x14.google.api.HttpBody\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/{bucket}/{key}\x12]\n" +
 	"\vGetObjectMD\x12\x15.s3.ObjectInfoRequest\x1a\x16.s3.ObjectInfoResponse\"\x1f\x82\xd3\xe4\x93\x02\x19B\x17\n" +
 	"\x04HEAD\x12\x0f/{bucket}/{key}\x12Z\n" +
 	"\fDeleteObject\x12\x17.s3.DeleteObjectRequest\x1a\x18.s3.DeleteObjectResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/{bucket}/{key}\x12T\n" +
@@ -1419,7 +1420,8 @@ var file_services_proto_goTypes = []any{
 	(*DeleteObjectResponse)(nil),        // 23: s3.DeleteObjectResponse
 	(*ListObjectsRequest)(nil),          // 24: s3.ListObjectsRequest
 	(*ListObjectsResponse)(nil),         // 25: s3.ListObjectsResponse
-	(*emptypb.Empty)(nil),               // 26: google.protobuf.Empty
+	(*httpbody.HttpBody)(nil),           // 26: google.api.HttpBody
+	(*emptypb.Empty)(nil),               // 27: google.protobuf.Empty
 }
 var file_services_proto_depIdxs = []int32{
 	0,  // 0: s3.ListAllBucketsResponse.buckets:type_name -> s3.Bucket
@@ -1428,36 +1430,37 @@ var file_services_proto_depIdxs = []int32{
 	2,  // 3: s3.RegisterResponse.keys:type_name -> s3.Keys
 	1,  // 4: s3.LoginRequest.credentials:type_name -> s3.UserCredentials
 	2,  // 5: s3.LoginResponse.keys:type_name -> s3.Keys
-	3,  // 6: s3.ListObjectsResponse.content:type_name -> s3.ObjectInfo
-	8,  // 7: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
-	6,  // 8: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
-	10, // 9: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
-	4,  // 10: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
-	26, // 11: s3.AuthService.RegisterWithKeys:input_type -> google.protobuf.Empty
-	12, // 12: s3.AuthService.RegisterWithPassword:input_type -> s3.RegisterWithPasswordRequest
-	14, // 13: s3.AuthService.LoginWithPassword:input_type -> s3.LoginRequest
-	16, // 14: s3.ObjectService.LoadObject:input_type -> s3.LoadObjectRequest
-	18, // 15: s3.ObjectService.GetObject:input_type -> s3.GetObjectRequest
-	20, // 16: s3.ObjectService.GetObjectMD:input_type -> s3.ObjectInfoRequest
-	22, // 17: s3.ObjectService.DeleteObject:input_type -> s3.DeleteObjectRequest
-	24, // 18: s3.ObjectService.ListObjects:input_type -> s3.ListObjectsRequest
-	9,  // 19: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
-	7,  // 20: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
-	11, // 21: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
-	5,  // 22: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
-	13, // 23: s3.AuthService.RegisterWithKeys:output_type -> s3.RegisterResponse
-	13, // 24: s3.AuthService.RegisterWithPassword:output_type -> s3.RegisterResponse
-	15, // 25: s3.AuthService.LoginWithPassword:output_type -> s3.LoginResponse
-	17, // 26: s3.ObjectService.LoadObject:output_type -> s3.LoadObjectResponse
-	19, // 27: s3.ObjectService.GetObject:output_type -> s3.GetObjectResponse
-	21, // 28: s3.ObjectService.GetObjectMD:output_type -> s3.ObjectInfoResponse
-	23, // 29: s3.ObjectService.DeleteObject:output_type -> s3.DeleteObjectResponse
-	25, // 30: s3.ObjectService.ListObjects:output_type -> s3.ListObjectsResponse
-	19, // [19:31] is the sub-list for method output_type
-	7,  // [7:19] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	26, // 6: s3.LoadObjectRequest.body:type_name -> google.api.HttpBody
+	3,  // 7: s3.ListObjectsResponse.content:type_name -> s3.ObjectInfo
+	8,  // 8: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
+	6,  // 9: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
+	10, // 10: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
+	4,  // 11: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
+	27, // 12: s3.AuthService.RegisterWithKeys:input_type -> google.protobuf.Empty
+	12, // 13: s3.AuthService.RegisterWithPassword:input_type -> s3.RegisterWithPasswordRequest
+	14, // 14: s3.AuthService.LoginWithPassword:input_type -> s3.LoginRequest
+	16, // 15: s3.ObjectService.LoadObject:input_type -> s3.LoadObjectRequest
+	18, // 16: s3.ObjectService.GetObject:input_type -> s3.GetObjectRequest
+	20, // 17: s3.ObjectService.GetObjectMD:input_type -> s3.ObjectInfoRequest
+	22, // 18: s3.ObjectService.DeleteObject:input_type -> s3.DeleteObjectRequest
+	24, // 19: s3.ObjectService.ListObjects:input_type -> s3.ListObjectsRequest
+	9,  // 20: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
+	7,  // 21: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
+	11, // 22: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
+	5,  // 23: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
+	13, // 24: s3.AuthService.RegisterWithKeys:output_type -> s3.RegisterResponse
+	13, // 25: s3.AuthService.RegisterWithPassword:output_type -> s3.RegisterResponse
+	15, // 26: s3.AuthService.LoginWithPassword:output_type -> s3.LoginResponse
+	17, // 27: s3.ObjectService.LoadObject:output_type -> s3.LoadObjectResponse
+	26, // 28: s3.ObjectService.GetObject:output_type -> google.api.HttpBody
+	21, // 29: s3.ObjectService.GetObjectMD:output_type -> s3.ObjectInfoResponse
+	23, // 30: s3.ObjectService.DeleteObject:output_type -> s3.DeleteObjectResponse
+	25, // 31: s3.ObjectService.ListObjects:output_type -> s3.ListObjectsResponse
+	20, // [20:32] is the sub-list for method output_type
+	8,  // [8:20] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_services_proto_init() }

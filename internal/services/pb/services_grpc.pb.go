@@ -11,6 +11,7 @@ package pb
 
 import (
 	context "context"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -433,7 +434,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ObjectServiceClient interface {
 	LoadObject(ctx context.Context, in *LoadObjectRequest, opts ...grpc.CallOption) (*LoadObjectResponse, error)
-	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
+	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	GetObjectMD(ctx context.Context, in *ObjectInfoRequest, opts ...grpc.CallOption) (*ObjectInfoResponse, error)
 	DeleteObject(ctx context.Context, in *DeleteObjectRequest, opts ...grpc.CallOption) (*DeleteObjectResponse, error)
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
@@ -457,9 +458,9 @@ func (c *objectServiceClient) LoadObject(ctx context.Context, in *LoadObjectRequ
 	return out, nil
 }
 
-func (c *objectServiceClient) GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error) {
+func (c *objectServiceClient) GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetObjectResponse)
+	out := new(httpbody.HttpBody)
 	err := c.cc.Invoke(ctx, ObjectService_GetObject_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -502,7 +503,7 @@ func (c *objectServiceClient) ListObjects(ctx context.Context, in *ListObjectsRe
 // for forward compatibility.
 type ObjectServiceServer interface {
 	LoadObject(context.Context, *LoadObjectRequest) (*LoadObjectResponse, error)
-	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
+	GetObject(context.Context, *GetObjectRequest) (*httpbody.HttpBody, error)
 	GetObjectMD(context.Context, *ObjectInfoRequest) (*ObjectInfoResponse, error)
 	DeleteObject(context.Context, *DeleteObjectRequest) (*DeleteObjectResponse, error)
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
@@ -519,7 +520,7 @@ type UnimplementedObjectServiceServer struct{}
 func (UnimplementedObjectServiceServer) LoadObject(context.Context, *LoadObjectRequest) (*LoadObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadObject not implemented")
 }
-func (UnimplementedObjectServiceServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
+func (UnimplementedObjectServiceServer) GetObject(context.Context, *GetObjectRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
 }
 func (UnimplementedObjectServiceServer) GetObjectMD(context.Context, *ObjectInfoRequest) (*ObjectInfoResponse, error) {

@@ -4,6 +4,7 @@ syntax = "proto3";
 package s3;
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "google/api/httpbody.proto";
 option go_package = "github.com/lim-bo/barn/internal/services/pb";
 // Messages
 message Bucket {
@@ -131,25 +132,19 @@ message LoginResponse {
 
 service ObjectService {
     rpc LoadObject(LoadObjectRequest) returns (LoadObjectResponse) {
-        option (google.api.http) = {
-            put: "/{bucket}/{key}"
-            body: "data"
-            response_body: "etag"
-        };
     }
 
-    rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
+    rpc GetObject(GetObjectRequest) returns (google.api.HttpBody) {
         option (google.api.http) = {
             get: "/{bucket}/{key}"
-            response_body: "data"
         };
     }
 
     rpc GetObjectMD(ObjectInfoRequest) returns (ObjectInfoResponse) {
         option (google.api.http) = {
             custom: {
-            kind: "HEAD"
-            path: "/{bucket}/{key}"
+                kind: "HEAD"
+                path: "/{bucket}/{key}"
            }
         };
     }
@@ -171,7 +166,7 @@ service ObjectService {
 message LoadObjectRequest {
     string bucket = 1;
     string key = 2;
-    bytes data = 3;
+    google.api.HttpBody body = 3;
 }
 
 message LoadObjectResponse {

@@ -25,6 +25,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -240,7 +241,10 @@ func TestObjectService(t *testing.T) {
 		requests = append(requests, &pb.LoadObjectRequest{
 			Bucket: bucket,
 			Key:    key,
-			Data:   data,
+			Body: &httpbody.HttpBody{
+				ContentType: "application/octet-stream",
+				Data:        data,
+			},
 		})
 		keys = append(keys, key)
 		filesContent = append(filesContent, slices.Clone(data))

@@ -22,7 +22,7 @@ func New(accessKey string, secretKey string) *Signer {
 	}
 }
 
-func (s *Signer) SignRequest(req *http.Request) error {
+func (s *Signer) SignRequest(req *http.Request) *http.Request {
 	req.Header.Set("Grpc-Metadata-X-Access-Key", s.accessKey)
 	req.Header.Set("Grpc-Metadata-X-Plain-Secret", s.secretKey)
 	ts := time.Now().Format(time.RFC3339)
@@ -42,5 +42,5 @@ func (s *Signer) SignRequest(req *http.Request) error {
 	io.WriteString(h, signatureBuilder.String())
 	signature := hex.EncodeToString(h.Sum(nil))
 	req.Header.Set("Grpc-Metadata-X-Signature", signature)
-	return nil
+	return req
 }
