@@ -47,6 +47,7 @@ func (sv *SignatureValidator) AuthInterceptor(ctx context.Context, req any, info
 		return nil, status.Error(codes.Unauthenticated, "lack of headers")
 	}
 	if len(md.Get(headerAccessKey)) != 1 || len(md.Get(headerSecret)) != 1 || len(md.Get(headerSignature)) != 1 {
+		slog.Debug("headers", slog.Any("access-key", md.Get(headerAccessKey)), slog.Any("secret", md.Get(headerSecret)), slog.Any("signature", md.Get(headerSignature)))
 		slog.Error("auth failed: invalid headers", slog.String("req_id", reqID))
 		return nil, status.Error(codes.Unauthenticated, "invalid auth headers")
 	}

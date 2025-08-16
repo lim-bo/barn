@@ -24,6 +24,7 @@ func main() {
 	// Preparing mux
 	gwMux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(headerMatcher),
+		runtime.WithOutgoingHeaderMatcher(headerMatcher),
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{Marshaler: &runtime.JSONPb{}}),
 	)
 
