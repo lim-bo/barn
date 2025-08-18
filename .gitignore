@@ -3,3 +3,4 @@ cfg.yaml
 .vscode
 pkg/auth_signer/*_test.go
 data
+proto/google
