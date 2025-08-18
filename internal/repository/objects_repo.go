@@ -16,6 +16,8 @@ import (
 	"github.com/lim-bo/barn/pkg/models"
 )
 
+// Operates objects' info in db. This implementation
+// based on pgxpool, but may be used with other postgresql conn with proper constructor
 type ObjectsRepository struct {
 	conn PgConnection
 }
@@ -57,6 +59,7 @@ func NewObjectsRepoWithConn(conn PgConnection) *ObjectsRepository {
 	}
 }
 
+// Saves new object linked with owner's bucket, if there is one with such key already rewrites it
 func (repo *ObjectsRepository) SaveObject(owner uuid.UUID, bucket string, obj *models.Object) error {
 	var exists bool
 	var bucketID uuid.UUID
@@ -95,6 +98,8 @@ func (repo *ObjectsRepository) SaveObject(owner uuid.UUID, bucket string, obj *m
 	return nil
 }
 
+// Returns full key objects' info from owner's bucket. If there is no object
+// with such key returns ErrUnexistObject
 func (repo *ObjectsRepository) GetObjectInfo(owner uuid.UUID, bucket, key string) (*models.Object, error) {
 	obj := models.Object{
 		Key: key,
@@ -113,6 +118,7 @@ o.bucket_id = b.id WHERE b.name = $1 AND o.key = $2 AND b.owner_id = $3;`
 	return &obj, nil
 }
 
+// Deletes object in owner's bucket by key. If there is no such key returns ErrUnexistObject
 func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -127,6 +133,8 @@ func (repo *ObjectsRepository) DeleteObject(owner uuid.UUID, bucket, key string)
 	return nil
 }
 
+// Recieves uid, bucket name and listing options, returns list of objects. If opts is nil, returns whole bucket's content.
+// If limit is 0, there is no limit for objects' count.
 func (repo *ObjectsRepository) ListObjects(owner uuid.UUID, bucket string, opts *services.PaginationOpts) ([]*models.Object, error) {
 	query := `SELECT o.key, o.size, o.etag, o.last_modified 
 FROM objects o INNER JOIN buckets b ON o.bucket_id = b.id WHERE b.name = $1 AND b.owner_id = $2`

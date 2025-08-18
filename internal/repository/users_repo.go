@@ -15,6 +15,8 @@ import (
 	"github.com/lim-bo/barn/pkg/models"
 )
 
+// Operates users' info in db. This implementation
+// based on pgxpool, but may be used with other postgresql conn with proper constructor
 type UsersRepository struct {
 	conn PgConnection
 }
@@ -56,6 +58,8 @@ func NewUsersRepoWithConn(conn PgConnection) *UsersRepository {
 	}
 }
 
+// Creates new user. If username is not nil and have been already taken, returns ErrUserExists.
+// AccessKey might be also unique
 func (ur *UsersRepository) Create(user *models.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -73,6 +77,7 @@ func (ur *UsersRepository) Create(user *models.User) error {
 	return nil
 }
 
+// Searches user's info by its unique accessKey. If no results, returns ErrUnexistUser
 func (ur *UsersRepository) GetByAccessKey(accessKey string) (*models.User, error) {
 	var user models.User
 	user.AccessKey = accessKey
@@ -89,6 +94,7 @@ func (ur *UsersRepository) GetByAccessKey(accessKey string) (*models.User, error
 	return &user, nil
 }
 
+// Searches user's info by unique username. If no results, returns ErrUnexistUser
 func (ur *UsersRepository) GetByUsername(username string) (*models.User, error) {
 	var user models.User
 	user.Username = &username
@@ -105,6 +111,7 @@ func (ur *UsersRepository) GetByUsername(username string) (*models.User, error) 
 	return &user, nil
 }
 
+// Renews user's access and secret keys by its uid. If there is no user with such uid, returns ErrUnexistUser
 func (ur *UsersRepository) UpdateKeys(uid uuid.UUID, accessKey string, secretKeyHash string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

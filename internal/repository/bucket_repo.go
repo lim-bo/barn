@@ -15,6 +15,7 @@ import (
 	"github.com/lim-bo/barn/pkg/models"
 )
 
+// Connection interface for easier unit tests
 type PgConnection interface {
 	Ping(ctx context.Context) error
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
@@ -23,6 +24,8 @@ type PgConnection interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
+// Operates bukcets' info in db. This implementation
+// based on pgxpool, but may be used with other postgresql conn with proper constructor
 type BucketsRepository struct {
 	conn PgConnection
 }
@@ -72,6 +75,9 @@ func NewBucketRepoWithConn(conn PgConnection) *BucketsRepository {
 	}
 }
 
+// Creates new bucket for ownerID with given name bucket. If there is bucket with
+// such name returns ErrExistBucket. If there is no such ownerID returns ErrNoUser.
+// On success returns Bucket data.
 func (br *BucketsRepository) CreateBucket(ownerId uuid.UUID, bucket string) (*models.Bucket, error) {
 	if !validateBucketName(bucket) {
 		return nil, errvalues.ErrInvalidBucket
@@ -113,6 +119,7 @@ func (br *BucketsRepository) CreateBucket(ownerId uuid.UUID, bucket string) (*mo
 	return &result, nil
 }
 
+// Deletes bucket of user with ownerID. If there is no such bucket returns ErrNoBucket
 func (br *BucketsRepository) DeleteBucket(ownerId uuid.UUID, bucket string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -126,6 +133,7 @@ func (br *BucketsRepository) DeleteBucket(ownerId uuid.UUID, bucket string) erro
 	return nil
 }
 
+// Returns all buckets' data owned by ownerID user.
 func (br *BucketsRepository) ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -145,6 +153,7 @@ func (br *BucketsRepository) ListAllBuckets(ownerId uuid.UUID) ([]*models.Bucket
 	return result, nil
 }
 
+// Checks if there is data of bucket owned by ownerID.
 func (br *BucketsRepository) CheckExist(ownerID uuid.UUID, bucket string) (bool, error) {
 	var exist bool
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)

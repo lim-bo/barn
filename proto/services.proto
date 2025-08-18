@@ -32,8 +32,13 @@ message ObjectInfo {
 }
 
 // Services
-service BucketService {
 
+
+// Buckets managing service. All methods requires authorization via AuthInterceptor 
+// which provides uid for core logic (look for implementation in code (internal/services))
+service BucketService {
+    // Creates bucket with given name. HTTP: name provided in path-values.
+    // Returns bucket's info.
     rpc CreateBucket(CreateBucketRequest) returns (CreateBucketResponse) {
         option (google.api.http) = {
             put: "/{name}"
@@ -41,6 +46,7 @@ service BucketService {
         };
     }
 
+    // Lists buckets owned by user. HTTP: returns json array
     rpc ListAllBuckets(ListAllBucketsRequest) returns (ListAllBucketsResponse) {
         option (google.api.http) = {
             get: "/"
@@ -48,12 +54,15 @@ service BucketService {
         };
     }
 
+    // Deletes bucket by given name. HTTP: name provided in path-values.
     rpc DeleteBucket(DeleteBucketRequest) returns (DeleteBucketResponse) {
         option (google.api.http) = {
             delete: "/{name}"
         };
     }
 
+    // Looks for bucket with given name. If there is no bucket, returns error (NotFound)
+    // otherwise returns nil error. HTTP: HEAD request returns 200 or 404.
     rpc CheckExistBucket(CheckExistBucketRequest) returns (CheckExistBucketResponse) {
         option (google.api.http) = {
            custom: {
@@ -90,13 +99,17 @@ message DeleteBucketRequest {
 
 message DeleteBucketResponse {}
 
+// Users' authentication managing service.
 service AuthService {
+    // Registers new user and returns its access-key, secret-key pair.
     rpc RegisterWithKeys(google.protobuf.Empty) returns (RegisterResponse) {
         option (google.api.http) = {
             post: "/auth/register"
             response_body: "keys"
         };
     }
+    // Register new user with given credentials (username and password) and
+    // returns access-secret keys.
     rpc RegisterWithPassword(RegisterWithPasswordRequest) returns (RegisterResponse) {
         option (google.api.http) = {
             post: "/auth/register-pass"
@@ -104,7 +117,8 @@ service AuthService {
             response_body: "keys"
         };
     }
-
+    // Recieves credentials (username and password) and returns user's access-key
+    // and renewed secret-key
     rpc LoginWithPassword(LoginRequest) returns (LoginResponse) {
         option (google.api.http) = {
             post: "/auth/login"
@@ -131,15 +145,24 @@ message LoginResponse {
 }
 
 service ObjectService {
+    // Recieves bucket, key and new object's data, returns file's etag.
+    // HTTP: recieves PUT in /{bucket}/key route with application/octet-stream file data
     rpc LoadObject(LoadObjectRequest) returns (LoadObjectResponse) {
     }
 
+    // Returns object's data by bucket and key. HTTP: returns application/octet-stream content
     rpc GetObject(GetObjectRequest) returns (google.api.HttpBody) {
         option (google.api.http) = {
             get: "/{bucket}/{key}"
         };
     }
 
+    // Provides object's size, etag, last-modified data in metadata response.
+    // Headers:
+    //  size: "content-lenght"
+    //  etag: "etag"
+    //  last-modified: "last-modified"
+    // HTTP: returns 200 and metadata in response headers or error
     rpc GetObjectMD(ObjectInfoRequest) returns (ObjectInfoResponse) {
         option (google.api.http) = {
             custom: {
@@ -149,12 +172,15 @@ service ObjectService {
         };
     }
 
+    // Deletes object in bucket with given key.
     rpc DeleteObject(DeleteObjectRequest) returns (DeleteObjectResponse) {
         option (google.api.http) = {
             delete: "/{bucket}/{key}"
         };
     }
 
+    // Returns list of bucket's objects with given limit and offset.
+    // HTTP: limit and offset should be provided by query-params, if necessary
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
             get: "/{bucket}"
