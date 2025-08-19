@@ -187,6 +187,34 @@ service ObjectService {
             response_body: "*"
         };
     }
+
+    // MULTIPART METHODS
+
+
+    rpc InitMultipart(InitMultipartRequest) returns (InitMultipartResponse) {
+        option (google.api.http) = {
+            post: "/{bucket}/{key}"
+            additional_bindings {
+                post: "/{bucket}/{key}?uploads"
+            }
+        };
+    }
+
+    rpc UploadPart(UploadPartRequest) returns (UploadPartResponse) {
+
+    }
+
+    rpc CompleteMultipart(CompleteMultipartRequest) returns (CompleteMultipartResponse) {
+        option (google.api.http) = {
+            post: "/{bucket}/{key}"
+        };
+    }
+
+    rpc AbortMultipart(AbortMultipartRequest) returns (AbortMultipartResponse) {
+        option (google.api.http) = {
+            delete: "/{bucket}/{key}"
+        };
+    }
 }
 
 message LoadObjectRequest {
@@ -234,4 +262,53 @@ message ListObjectsResponse {
     int32 limit = 3;
     int32 offset = 4;
     repeated ObjectInfo content = 5;
+}
+
+message InitMultipartRequest {
+    string bucket = 1;
+    string key = 2;
+    bool uploads = 3;
+}
+
+message InitMultipartResponse {
+    string upload_id = 1;
+}
+
+message UploadPartRequest {
+    string bucket = 1;
+    string key = 2;
+    google.api.HttpBody body = 3;
+    string upload_id = 4;
+    int32 part_number = 5;
+}
+
+message UploadPartResponse {
+    string etag = 1;
+}
+
+message CompleteMultipartRequest {
+    string bucket = 1;
+    string key = 2;
+    string upload_id = 3;
+    repeated CompletedPart parts = 4;
+}
+
+message CompletedPart {
+    int32 part_number = 1;
+    string etag = 2;
+}
+
+message CompleteMultipartResponse {
+    string etag = 1;
+    int32 part_count = 2;
+}
+
+message AbortMultipartRequest {
+    string bucket = 1;
+    string key = 2;
+    string upload_id = 3;
+}
+
+message AbortMultipartResponse {
+    bool aborted = 1;
 }
