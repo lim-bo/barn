@@ -3,9 +3,11 @@ package storage_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/lim-bo/barn/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,4 +58,51 @@ func TestLocalFS(t *testing.T) {
 		assert.Error(t, err)
 	})
 	assert.NoError(t, bucketLfs.DeleteBucket(context.Background(), bucket))
+}
+
+func TestMultipartLocalFS(t *testing.T) {
+	lfs := storage.NewMultipartLocalFS("../../data")
+	bucket := "test_bucket"
+	key := "biiiig_file.txt"
+	ctx := context.Background()
+
+	fileParts := make([][]byte, 0, 5)
+	for i := range 5 {
+		content := fmt.Sprintf("row number %d\n", i)
+		fileParts = append(fileParts, []byte(content))
+	}
+	parts := make([]storage.UploadedPart, 0, 5)
+	var uploadID uuid.UUID
+	var err error
+	t.Run("init upload", func(t *testing.T) {
+		uploadID, err = lfs.InitMultipartUpload(ctx)
+		assert.NoError(t, err)
+	})
+	t.Run("upload parts", func(t *testing.T) {
+		for i, data := range fileParts {
+			src := bytes.NewReader(data)
+			etag, err := lfs.UploadPart(ctx, uploadID, i, src)
+			assert.NoError(t, err)
+			parts = append(parts, storage.UploadedPart{
+				ETag:       etag,
+				PartNumber: i,
+			})
+		}
+	})
+	t.Run("complete upload", func(t *testing.T) {
+		etag, err := lfs.CompleteUpload(ctx, storage.UploadMetadata{
+			Bucket: bucket,
+			Key:    key,
+			ID:     uploadID,
+			Parts:  parts,
+		})
+		assert.NoError(t, err)
+		fmt.Println("result etag: " + etag)
+	})
+	t.Run("init and abort upload", func(t *testing.T) {
+		newUploadID, err := lfs.InitMultipartUpload(ctx)
+		assert.NoError(t, err)
+		err = lfs.AbortUpload(ctx, newUploadID)
+		assert.NoError(t, err)
+	})
 }

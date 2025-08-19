@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ObjectMetadata struct {
@@ -13,8 +15,15 @@ type ObjectMetadata struct {
 }
 
 type UploadedPart struct {
-	PartNumber int    `xml:"PartNumber"`
-	ETag       string `xml:"ETag"`
+	PartNumber int
+	ETag       string
+}
+
+type UploadMetadata struct {
+	ID     uuid.UUID
+	Bucket string
+	Key    string
+	Parts  []UploadedPart
 }
 
 type ObjectStorage interface {
@@ -30,10 +39,10 @@ type BucketStorage interface {
 }
 
 type MultipartStorage interface {
-	InitMultipartUpload(ctx context.Context, bucket, key string) (string, error)
-	UploadPart(ctx context.Context, uploadID string, partNumber int, data io.Reader) (string, error)
-	CompleteUpload(ctx context.Context, uploadID string, parts []UploadedPart) (string, error)
-	AbortUpload(ctx context.Context, uploadID string) error
+	InitMultipartUpload(ctx context.Context) (uuid.UUID, error)
+	UploadPart(ctx context.Context, uploadID uuid.UUID, partNumber int, data io.Reader) (string, error)
+	CompleteUpload(ctx context.Context, upload UploadMetadata) (string, error)
+	AbortUpload(ctx context.Context, uploadID uuid.UUID) error
 }
 
 type StorageEngine interface {
