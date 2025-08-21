@@ -194,7 +194,7 @@ service ObjectService {
     rpc InitMultipart(InitMultipartRequest) returns (InitMultipartResponse) {
         option (google.api.http) = {
             post: "/{bucket}/{key}"
-            additional_bindings {
+            additional_bindings: {
                 post: "/{bucket}/{key}?uploads"
             }
         };
@@ -213,6 +213,24 @@ service ObjectService {
     rpc AbortMultipart(AbortMultipartRequest) returns (AbortMultipartResponse) {
         option (google.api.http) = {
             delete: "/{bucket}/{key}"
+        };
+    }
+
+    rpc ListMultipartUploads(ListMultipartUploadsRequest) returns (ListMultipartUploadsResponse) {
+        option (google.api.http) = {
+            get: "/{bucket}"
+            additional_bindings: {
+                get: "/{bucket}?uploads"
+            }
+        };
+    }
+
+    rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
+        option (google.api.http) = {
+            get: "/{bucket}/{key}"
+            additional_bindings: {
+                get: "/{bucket}/{key}?uploadId={upload_id}"
+            }
         };
     }
 }
@@ -311,4 +329,40 @@ message AbortMultipartRequest {
 
 message AbortMultipartResponse {
     bool aborted = 1;
+}
+
+message ListMultipartUploadsRequest {
+    string bucket = 1;
+    bool uploads = 2;
+}
+
+message ListMultipartUploadsResponse {
+    string bucket = 1;
+    repeated Upload uploads = 2;
+}
+
+message Upload {
+    string key = 1;
+    string upload_id = 2;
+    string created_at = 3;
+}
+
+message ListPartsRequest {
+    string bucket = 1;
+    string key = 2;
+    string upload_id = 3;
+}
+
+message UploadPart {
+    int32 part_number = 1;
+    string etag = 2;
+    int64 size = 3;
+    string created_at = 4;
+}
+
+message ListPartsResponse {
+    string bucket = 1;
+    string key = 2;
+    string upload_id = 3;
+    repeated UploadPart parts = 4;
 }

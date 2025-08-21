@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE multipart_uploads (
     upload_id   UUID PRIMARY KEY,
     bucket_id   UUID NOT NULL REFERENCES buckets(id) ON DELETE CASCADE,
