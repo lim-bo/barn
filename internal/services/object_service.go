@@ -26,6 +26,10 @@ const (
 	ObjectSizeHeader         = "content-lenght"
 	ObjectETagHeader         = "etag"
 	ObjectLastModifiedHeader = "last-modified"
+
+	MultipartStatusInited    = "inited"
+	MultipartStatusCompleted = "completed"
+	MultipartStatusAborted   = "aborted"
 )
 
 type PaginationOpts struct {

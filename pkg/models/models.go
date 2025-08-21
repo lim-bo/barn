@@ -35,3 +35,19 @@ type Object struct {
 	Etag         string
 	LastModified time.Time
 }
+
+type Upload struct {
+	ID        uuid.UUID
+	Bucket    string
+	Key       string
+	OwnerID   uuid.UUID
+	CreatedAt time.Time
+	Status    string
+}
+
+type UploadPart struct {
+	Number    int
+	Size      int64
+	Etag      string
+	CreatedAt time.Time
+}
