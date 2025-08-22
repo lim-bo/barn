@@ -22,7 +22,7 @@ func main() {
 	cfg := settings.GetConfig()
 	slog.SetLogLoggerLevel(slog.Level(cfg.GetInt("object_service.log_level")))
 
-	storageEngine := storage.NewLocalFS(cfg.GetString("storage.root"))
+	objStorageEngine := storage.NewLocalFS(cfg.GetString("storage.root"))
 	objRepository := repos.NewObjectsRepo(&repos.DBConfig{
 		Address:  cfg.GetString("postgres.address"),
 		User:     cfg.GetString("postgres.user"),
@@ -39,7 +39,10 @@ func main() {
 
 	sigValidator := services.NewSignatureValidator(usersRepo)
 
-	objService := services.NewObjectService(objRepository, storageEngine)
+	objService := services.NewObjectService(services.ObjectServiceConfig{
+		ObjRepo:    objRepository,
+		ObjStorage: objStorageEngine,
+	})
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		services.RequestIDInterceptor,
 		sigValidator.AuthInterceptor,

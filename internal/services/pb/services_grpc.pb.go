@@ -34,11 +34,18 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Services
+// Buckets managing service. All methods requires authorization via AuthInterceptor
+// which provides uid for core logic (look for implementation in code (internal/services))
 type BucketServiceClient interface {
+	// Creates bucket with given name. HTTP: name provided in path-values.
+	// Returns bucket's info.
 	CreateBucket(ctx context.Context, in *CreateBucketRequest, opts ...grpc.CallOption) (*CreateBucketResponse, error)
+	// Lists buckets owned by user. HTTP: returns json array
 	ListAllBuckets(ctx context.Context, in *ListAllBucketsRequest, opts ...grpc.CallOption) (*ListAllBucketsResponse, error)
+	// Deletes bucket by given name. HTTP: name provided in path-values.
 	DeleteBucket(ctx context.Context, in *DeleteBucketRequest, opts ...grpc.CallOption) (*DeleteBucketResponse, error)
+	// Looks for bucket with given name. If there is no bucket, returns error (NotFound)
+	// otherwise returns nil error. HTTP: HEAD request returns 200 or 404.
 	CheckExistBucket(ctx context.Context, in *CheckExistBucketRequest, opts ...grpc.CallOption) (*CheckExistBucketResponse, error)
 }
 
@@ -94,11 +101,18 @@ func (c *bucketServiceClient) CheckExistBucket(ctx context.Context, in *CheckExi
 // All implementations must embed UnimplementedBucketServiceServer
 // for forward compatibility.
 //
-// Services
+// Buckets managing service. All methods requires authorization via AuthInterceptor
+// which provides uid for core logic (look for implementation in code (internal/services))
 type BucketServiceServer interface {
+	// Creates bucket with given name. HTTP: name provided in path-values.
+	// Returns bucket's info.
 	CreateBucket(context.Context, *CreateBucketRequest) (*CreateBucketResponse, error)
+	// Lists buckets owned by user. HTTP: returns json array
 	ListAllBuckets(context.Context, *ListAllBucketsRequest) (*ListAllBucketsResponse, error)
+	// Deletes bucket by given name. HTTP: name provided in path-values.
 	DeleteBucket(context.Context, *DeleteBucketRequest) (*DeleteBucketResponse, error)
+	// Looks for bucket with given name. If there is no bucket, returns error (NotFound)
+	// otherwise returns nil error. HTTP: HEAD request returns 200 or 404.
 	CheckExistBucket(context.Context, *CheckExistBucketRequest) (*CheckExistBucketResponse, error)
 	mustEmbedUnimplementedBucketServiceServer()
 }
@@ -252,9 +266,16 @@ const (
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Users' authentication managing service.
 type AuthServiceClient interface {
+	// Registers new user and returns its access-key, secret-key pair.
 	RegisterWithKeys(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RegisterResponse, error)
+	// Register new user with given credentials (username and password) and
+	// returns access-secret keys.
 	RegisterWithPassword(ctx context.Context, in *RegisterWithPasswordRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	// Recieves credentials (username and password) and returns user's access-key
+	// and renewed secret-key
 	LoginWithPassword(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 }
 
@@ -299,9 +320,16 @@ func (c *authServiceClient) LoginWithPassword(ctx context.Context, in *LoginRequ
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// Users' authentication managing service.
 type AuthServiceServer interface {
+	// Registers new user and returns its access-key, secret-key pair.
 	RegisterWithKeys(context.Context, *emptypb.Empty) (*RegisterResponse, error)
+	// Register new user with given credentials (username and password) and
+	// returns access-secret keys.
 	RegisterWithPassword(context.Context, *RegisterWithPasswordRequest) (*RegisterResponse, error)
+	// Recieves credentials (username and password) and returns user's access-key
+	// and renewed secret-key
 	LoginWithPassword(context.Context, *LoginRequest) (*LoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -422,22 +450,48 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	ObjectService_LoadObject_FullMethodName   = "/s3.ObjectService/LoadObject"
-	ObjectService_GetObject_FullMethodName    = "/s3.ObjectService/GetObject"
-	ObjectService_GetObjectMD_FullMethodName  = "/s3.ObjectService/GetObjectMD"
-	ObjectService_DeleteObject_FullMethodName = "/s3.ObjectService/DeleteObject"
-	ObjectService_ListObjects_FullMethodName  = "/s3.ObjectService/ListObjects"
+	ObjectService_LoadObject_FullMethodName           = "/s3.ObjectService/LoadObject"
+	ObjectService_GetObject_FullMethodName            = "/s3.ObjectService/GetObject"
+	ObjectService_GetObjectMD_FullMethodName          = "/s3.ObjectService/GetObjectMD"
+	ObjectService_DeleteObject_FullMethodName         = "/s3.ObjectService/DeleteObject"
+	ObjectService_ListObjects_FullMethodName          = "/s3.ObjectService/ListObjects"
+	ObjectService_InitMultipart_FullMethodName        = "/s3.ObjectService/InitMultipart"
+	ObjectService_UploadPart_FullMethodName           = "/s3.ObjectService/UploadPart"
+	ObjectService_CompleteMultipart_FullMethodName    = "/s3.ObjectService/CompleteMultipart"
+	ObjectService_AbortMultipart_FullMethodName       = "/s3.ObjectService/AbortMultipart"
+	ObjectService_ListMultipartUploads_FullMethodName = "/s3.ObjectService/ListMultipartUploads"
+	ObjectService_ListParts_FullMethodName            = "/s3.ObjectService/ListParts"
 )
 
 // ObjectServiceClient is the client API for ObjectService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ObjectServiceClient interface {
+	// Recieves bucket, key and new object's data, returns file's etag.
+	// HTTP: recieves PUT in /{bucket}/key route with application/octet-stream file data
 	LoadObject(ctx context.Context, in *LoadObjectRequest, opts ...grpc.CallOption) (*LoadObjectResponse, error)
+	// Returns object's data by bucket and key. HTTP: returns application/octet-stream content
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
+	// Provides object's size, etag, last-modified data in metadata response.
+	// Headers:
+	//
+	//	size: "content-lenght"
+	//	etag: "etag"
+	//	last-modified: "last-modified"
+	//
+	// HTTP: returns 200 and metadata in response headers or error
 	GetObjectMD(ctx context.Context, in *ObjectInfoRequest, opts ...grpc.CallOption) (*ObjectInfoResponse, error)
+	// Deletes object in bucket with given key.
 	DeleteObject(ctx context.Context, in *DeleteObjectRequest, opts ...grpc.CallOption) (*DeleteObjectResponse, error)
+	// Returns list of bucket's objects with given limit and offset.
+	// HTTP: limit and offset should be provided by query-params, if necessary
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
+	InitMultipart(ctx context.Context, in *InitMultipartRequest, opts ...grpc.CallOption) (*InitMultipartResponse, error)
+	UploadPart(ctx context.Context, in *UploadPartRequest, opts ...grpc.CallOption) (*UploadPartResponse, error)
+	CompleteMultipart(ctx context.Context, in *CompleteMultipartRequest, opts ...grpc.CallOption) (*CompleteMultipartResponse, error)
+	AbortMultipart(ctx context.Context, in *AbortMultipartRequest, opts ...grpc.CallOption) (*AbortMultipartResponse, error)
+	ListMultipartUploads(ctx context.Context, in *ListMultipartUploadsRequest, opts ...grpc.CallOption) (*ListMultipartUploadsResponse, error)
+	ListParts(ctx context.Context, in *ListPartsRequest, opts ...grpc.CallOption) (*ListPartsResponse, error)
 }
 
 type objectServiceClient struct {
@@ -498,15 +552,95 @@ func (c *objectServiceClient) ListObjects(ctx context.Context, in *ListObjectsRe
 	return out, nil
 }
 
+func (c *objectServiceClient) InitMultipart(ctx context.Context, in *InitMultipartRequest, opts ...grpc.CallOption) (*InitMultipartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitMultipartResponse)
+	err := c.cc.Invoke(ctx, ObjectService_InitMultipart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *objectServiceClient) UploadPart(ctx context.Context, in *UploadPartRequest, opts ...grpc.CallOption) (*UploadPartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadPartResponse)
+	err := c.cc.Invoke(ctx, ObjectService_UploadPart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *objectServiceClient) CompleteMultipart(ctx context.Context, in *CompleteMultipartRequest, opts ...grpc.CallOption) (*CompleteMultipartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteMultipartResponse)
+	err := c.cc.Invoke(ctx, ObjectService_CompleteMultipart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *objectServiceClient) AbortMultipart(ctx context.Context, in *AbortMultipartRequest, opts ...grpc.CallOption) (*AbortMultipartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AbortMultipartResponse)
+	err := c.cc.Invoke(ctx, ObjectService_AbortMultipart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *objectServiceClient) ListMultipartUploads(ctx context.Context, in *ListMultipartUploadsRequest, opts ...grpc.CallOption) (*ListMultipartUploadsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMultipartUploadsResponse)
+	err := c.cc.Invoke(ctx, ObjectService_ListMultipartUploads_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *objectServiceClient) ListParts(ctx context.Context, in *ListPartsRequest, opts ...grpc.CallOption) (*ListPartsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPartsResponse)
+	err := c.cc.Invoke(ctx, ObjectService_ListParts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ObjectServiceServer is the server API for ObjectService service.
 // All implementations must embed UnimplementedObjectServiceServer
 // for forward compatibility.
 type ObjectServiceServer interface {
+	// Recieves bucket, key and new object's data, returns file's etag.
+	// HTTP: recieves PUT in /{bucket}/key route with application/octet-stream file data
 	LoadObject(context.Context, *LoadObjectRequest) (*LoadObjectResponse, error)
+	// Returns object's data by bucket and key. HTTP: returns application/octet-stream content
 	GetObject(context.Context, *GetObjectRequest) (*httpbody.HttpBody, error)
+	// Provides object's size, etag, last-modified data in metadata response.
+	// Headers:
+	//
+	//	size: "content-lenght"
+	//	etag: "etag"
+	//	last-modified: "last-modified"
+	//
+	// HTTP: returns 200 and metadata in response headers or error
 	GetObjectMD(context.Context, *ObjectInfoRequest) (*ObjectInfoResponse, error)
+	// Deletes object in bucket with given key.
 	DeleteObject(context.Context, *DeleteObjectRequest) (*DeleteObjectResponse, error)
+	// Returns list of bucket's objects with given limit and offset.
+	// HTTP: limit and offset should be provided by query-params, if necessary
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
+	InitMultipart(context.Context, *InitMultipartRequest) (*InitMultipartResponse, error)
+	UploadPart(context.Context, *UploadPartRequest) (*UploadPartResponse, error)
+	CompleteMultipart(context.Context, *CompleteMultipartRequest) (*CompleteMultipartResponse, error)
+	AbortMultipart(context.Context, *AbortMultipartRequest) (*AbortMultipartResponse, error)
+	ListMultipartUploads(context.Context, *ListMultipartUploadsRequest) (*ListMultipartUploadsResponse, error)
+	ListParts(context.Context, *ListPartsRequest) (*ListPartsResponse, error)
 	mustEmbedUnimplementedObjectServiceServer()
 }
 
@@ -531,6 +665,24 @@ func (UnimplementedObjectServiceServer) DeleteObject(context.Context, *DeleteObj
 }
 func (UnimplementedObjectServiceServer) ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListObjects not implemented")
+}
+func (UnimplementedObjectServiceServer) InitMultipart(context.Context, *InitMultipartRequest) (*InitMultipartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InitMultipart not implemented")
+}
+func (UnimplementedObjectServiceServer) UploadPart(context.Context, *UploadPartRequest) (*UploadPartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadPart not implemented")
+}
+func (UnimplementedObjectServiceServer) CompleteMultipart(context.Context, *CompleteMultipartRequest) (*CompleteMultipartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteMultipart not implemented")
+}
+func (UnimplementedObjectServiceServer) AbortMultipart(context.Context, *AbortMultipartRequest) (*AbortMultipartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AbortMultipart not implemented")
+}
+func (UnimplementedObjectServiceServer) ListMultipartUploads(context.Context, *ListMultipartUploadsRequest) (*ListMultipartUploadsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMultipartUploads not implemented")
+}
+func (UnimplementedObjectServiceServer) ListParts(context.Context, *ListPartsRequest) (*ListPartsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListParts not implemented")
 }
 func (UnimplementedObjectServiceServer) mustEmbedUnimplementedObjectServiceServer() {}
 func (UnimplementedObjectServiceServer) testEmbeddedByValue()                       {}
@@ -643,6 +795,114 @@ func _ObjectService_ListObjects_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ObjectService_InitMultipart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitMultipartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).InitMultipart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_InitMultipart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).InitMultipart(ctx, req.(*InitMultipartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ObjectService_UploadPart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadPartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).UploadPart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_UploadPart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).UploadPart(ctx, req.(*UploadPartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ObjectService_CompleteMultipart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteMultipartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).CompleteMultipart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_CompleteMultipart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).CompleteMultipart(ctx, req.(*CompleteMultipartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ObjectService_AbortMultipart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AbortMultipartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).AbortMultipart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_AbortMultipart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).AbortMultipart(ctx, req.(*AbortMultipartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ObjectService_ListMultipartUploads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMultipartUploadsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).ListMultipartUploads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_ListMultipartUploads_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).ListMultipartUploads(ctx, req.(*ListMultipartUploadsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ObjectService_ListParts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ObjectServiceServer).ListParts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ObjectService_ListParts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ObjectServiceServer).ListParts(ctx, req.(*ListPartsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ObjectService_ServiceDesc is the grpc.ServiceDesc for ObjectService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -669,6 +929,30 @@ var ObjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListObjects",
 			Handler:    _ObjectService_ListObjects_Handler,
+		},
+		{
+			MethodName: "InitMultipart",
+			Handler:    _ObjectService_InitMultipart_Handler,
+		},
+		{
+			MethodName: "UploadPart",
+			Handler:    _ObjectService_UploadPart_Handler,
+		},
+		{
+			MethodName: "CompleteMultipart",
+			Handler:    _ObjectService_CompleteMultipart_Handler,
+		},
+		{
+			MethodName: "AbortMultipart",
+			Handler:    _ObjectService_AbortMultipart_Handler,
+		},
+		{
+			MethodName: "ListMultipartUploads",
+			Handler:    _ObjectService_ListMultipartUploads_Handler,
+		},
+		{
+			MethodName: "ListParts",
+			Handler:    _ObjectService_ListParts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

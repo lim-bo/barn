@@ -1284,6 +1284,866 @@ func (x *ListObjectsResponse) GetContent() []*ObjectInfo {
 	return nil
 }
 
+type InitMultipartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Uploads       bool                   `protobuf:"varint,3,opt,name=uploads,proto3" json:"uploads,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InitMultipartRequest) Reset() {
+	*x = InitMultipartRequest{}
+	mi := &file_services_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InitMultipartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InitMultipartRequest) ProtoMessage() {}
+
+func (x *InitMultipartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InitMultipartRequest.ProtoReflect.Descriptor instead.
+func (*InitMultipartRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *InitMultipartRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *InitMultipartRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *InitMultipartRequest) GetUploads() bool {
+	if x != nil {
+		return x.Uploads
+	}
+	return false
+}
+
+type InitMultipartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadId      string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InitMultipartResponse) Reset() {
+	*x = InitMultipartResponse{}
+	mi := &file_services_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InitMultipartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InitMultipartResponse) ProtoMessage() {}
+
+func (x *InitMultipartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InitMultipartResponse.ProtoReflect.Descriptor instead.
+func (*InitMultipartResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *InitMultipartResponse) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+type UploadPartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Body          *httpbody.HttpBody     `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	UploadId      string                 `protobuf:"bytes,4,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	PartNumber    int32                  `protobuf:"varint,5,opt,name=part_number,json=partNumber,proto3" json:"part_number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadPartRequest) Reset() {
+	*x = UploadPartRequest{}
+	mi := &file_services_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadPartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadPartRequest) ProtoMessage() {}
+
+func (x *UploadPartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadPartRequest.ProtoReflect.Descriptor instead.
+func (*UploadPartRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UploadPartRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *UploadPartRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *UploadPartRequest) GetBody() *httpbody.HttpBody {
+	if x != nil {
+		return x.Body
+	}
+	return nil
+}
+
+func (x *UploadPartRequest) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *UploadPartRequest) GetPartNumber() int32 {
+	if x != nil {
+		return x.PartNumber
+	}
+	return 0
+}
+
+type UploadPartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Etag          string                 `protobuf:"bytes,1,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadPartResponse) Reset() {
+	*x = UploadPartResponse{}
+	mi := &file_services_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadPartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadPartResponse) ProtoMessage() {}
+
+func (x *UploadPartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadPartResponse.ProtoReflect.Descriptor instead.
+func (*UploadPartResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *UploadPartResponse) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+type CompleteMultipartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	UploadId      string                 `protobuf:"bytes,3,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	Parts         []*CompletedPart       `protobuf:"bytes,4,rep,name=parts,proto3" json:"parts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteMultipartRequest) Reset() {
+	*x = CompleteMultipartRequest{}
+	mi := &file_services_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteMultipartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteMultipartRequest) ProtoMessage() {}
+
+func (x *CompleteMultipartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteMultipartRequest.ProtoReflect.Descriptor instead.
+func (*CompleteMultipartRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *CompleteMultipartRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *CompleteMultipartRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *CompleteMultipartRequest) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *CompleteMultipartRequest) GetParts() []*CompletedPart {
+	if x != nil {
+		return x.Parts
+	}
+	return nil
+}
+
+type CompletedPart struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartNumber    int32                  `protobuf:"varint,1,opt,name=part_number,json=partNumber,proto3" json:"part_number,omitempty"`
+	Etag          string                 `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompletedPart) Reset() {
+	*x = CompletedPart{}
+	mi := &file_services_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompletedPart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompletedPart) ProtoMessage() {}
+
+func (x *CompletedPart) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompletedPart.ProtoReflect.Descriptor instead.
+func (*CompletedPart) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CompletedPart) GetPartNumber() int32 {
+	if x != nil {
+		return x.PartNumber
+	}
+	return 0
+}
+
+func (x *CompletedPart) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+type CompleteMultipartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Etag          string                 `protobuf:"bytes,1,opt,name=etag,proto3" json:"etag,omitempty"`
+	PartCount     int32                  `protobuf:"varint,2,opt,name=part_count,json=partCount,proto3" json:"part_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteMultipartResponse) Reset() {
+	*x = CompleteMultipartResponse{}
+	mi := &file_services_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteMultipartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteMultipartResponse) ProtoMessage() {}
+
+func (x *CompleteMultipartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteMultipartResponse.ProtoReflect.Descriptor instead.
+func (*CompleteMultipartResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CompleteMultipartResponse) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *CompleteMultipartResponse) GetPartCount() int32 {
+	if x != nil {
+		return x.PartCount
+	}
+	return 0
+}
+
+type AbortMultipartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	UploadId      string                 `protobuf:"bytes,3,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AbortMultipartRequest) Reset() {
+	*x = AbortMultipartRequest{}
+	mi := &file_services_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AbortMultipartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AbortMultipartRequest) ProtoMessage() {}
+
+func (x *AbortMultipartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AbortMultipartRequest.ProtoReflect.Descriptor instead.
+func (*AbortMultipartRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *AbortMultipartRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *AbortMultipartRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *AbortMultipartRequest) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+type AbortMultipartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Aborted       bool                   `protobuf:"varint,1,opt,name=aborted,proto3" json:"aborted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AbortMultipartResponse) Reset() {
+	*x = AbortMultipartResponse{}
+	mi := &file_services_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AbortMultipartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AbortMultipartResponse) ProtoMessage() {}
+
+func (x *AbortMultipartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AbortMultipartResponse.ProtoReflect.Descriptor instead.
+func (*AbortMultipartResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *AbortMultipartResponse) GetAborted() bool {
+	if x != nil {
+		return x.Aborted
+	}
+	return false
+}
+
+type ListMultipartUploadsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Uploads       bool                   `protobuf:"varint,2,opt,name=uploads,proto3" json:"uploads,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMultipartUploadsRequest) Reset() {
+	*x = ListMultipartUploadsRequest{}
+	mi := &file_services_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMultipartUploadsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMultipartUploadsRequest) ProtoMessage() {}
+
+func (x *ListMultipartUploadsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMultipartUploadsRequest.ProtoReflect.Descriptor instead.
+func (*ListMultipartUploadsRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ListMultipartUploadsRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *ListMultipartUploadsRequest) GetUploads() bool {
+	if x != nil {
+		return x.Uploads
+	}
+	return false
+}
+
+type ListMultipartUploadsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Uploads       []*Upload              `protobuf:"bytes,2,rep,name=uploads,proto3" json:"uploads,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMultipartUploadsResponse) Reset() {
+	*x = ListMultipartUploadsResponse{}
+	mi := &file_services_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMultipartUploadsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMultipartUploadsResponse) ProtoMessage() {}
+
+func (x *ListMultipartUploadsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMultipartUploadsResponse.ProtoReflect.Descriptor instead.
+func (*ListMultipartUploadsResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ListMultipartUploadsResponse) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *ListMultipartUploadsResponse) GetUploads() []*Upload {
+	if x != nil {
+		return x.Uploads
+	}
+	return nil
+}
+
+type Upload struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	UploadId      string                 `protobuf:"bytes,2,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Upload) Reset() {
+	*x = Upload{}
+	mi := &file_services_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Upload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Upload) ProtoMessage() {}
+
+func (x *Upload) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Upload.ProtoReflect.Descriptor instead.
+func (*Upload) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *Upload) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Upload) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *Upload) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type ListPartsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	UploadId      string                 `protobuf:"bytes,3,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPartsRequest) Reset() {
+	*x = ListPartsRequest{}
+	mi := &file_services_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPartsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPartsRequest) ProtoMessage() {}
+
+func (x *ListPartsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPartsRequest.ProtoReflect.Descriptor instead.
+func (*ListPartsRequest) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ListPartsRequest) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *ListPartsRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ListPartsRequest) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+type UploadPart struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartNumber    int32                  `protobuf:"varint,1,opt,name=part_number,json=partNumber,proto3" json:"part_number,omitempty"`
+	Etag          string                 `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	Size          int64                  `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadPart) Reset() {
+	*x = UploadPart{}
+	mi := &file_services_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadPart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadPart) ProtoMessage() {}
+
+func (x *UploadPart) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadPart.ProtoReflect.Descriptor instead.
+func (*UploadPart) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *UploadPart) GetPartNumber() int32 {
+	if x != nil {
+		return x.PartNumber
+	}
+	return 0
+}
+
+func (x *UploadPart) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *UploadPart) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *UploadPart) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type ListPartsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	UploadId      string                 `protobuf:"bytes,3,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	Parts         []*UploadPart          `protobuf:"bytes,4,rep,name=parts,proto3" json:"parts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPartsResponse) Reset() {
+	*x = ListPartsResponse{}
+	mi := &file_services_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPartsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPartsResponse) ProtoMessage() {}
+
+func (x *ListPartsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_services_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPartsResponse.ProtoReflect.Descriptor instead.
+func (*ListPartsResponse) Descriptor() ([]byte, []int) {
+	return file_services_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ListPartsResponse) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *ListPartsResponse) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ListPartsResponse) GetUploadId() string {
+	if x != nil {
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *ListPartsResponse) GetParts() []*UploadPart {
+	if x != nil {
+		return x.Parts
+	}
+	return nil
+}
+
 var File_services_proto protoreflect.FileDescriptor
 
 const file_services_proto_rawDesc = "" +
@@ -1360,7 +2220,70 @@ const file_services_proto_rawDesc = "" +
 	"\x05count\x18\x02 \x01(\x05R\x05count\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\x05R\x06offset\x12(\n" +
-	"\acontent\x18\x05 \x03(\v2\x0e.s3.ObjectInfoR\acontent2\x84\x03\n" +
+	"\acontent\x18\x05 \x03(\v2\x0e.s3.ObjectInfoR\acontent\"Z\n" +
+	"\x14InitMultipartRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x18\n" +
+	"\auploads\x18\x03 \x01(\bR\auploads\"4\n" +
+	"\x15InitMultipartResponse\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\"\xa5\x01\n" +
+	"\x11UploadPartRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12(\n" +
+	"\x04body\x18\x03 \x01(\v2\x14.google.api.HttpBodyR\x04body\x12\x1b\n" +
+	"\tupload_id\x18\x04 \x01(\tR\buploadId\x12\x1f\n" +
+	"\vpart_number\x18\x05 \x01(\x05R\n" +
+	"partNumber\"(\n" +
+	"\x12UploadPartResponse\x12\x12\n" +
+	"\x04etag\x18\x01 \x01(\tR\x04etag\"\x8a\x01\n" +
+	"\x18CompleteMultipartRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1b\n" +
+	"\tupload_id\x18\x03 \x01(\tR\buploadId\x12'\n" +
+	"\x05parts\x18\x04 \x03(\v2\x11.s3.CompletedPartR\x05parts\"D\n" +
+	"\rCompletedPart\x12\x1f\n" +
+	"\vpart_number\x18\x01 \x01(\x05R\n" +
+	"partNumber\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"N\n" +
+	"\x19CompleteMultipartResponse\x12\x12\n" +
+	"\x04etag\x18\x01 \x01(\tR\x04etag\x12\x1d\n" +
+	"\n" +
+	"part_count\x18\x02 \x01(\x05R\tpartCount\"^\n" +
+	"\x15AbortMultipartRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1b\n" +
+	"\tupload_id\x18\x03 \x01(\tR\buploadId\"2\n" +
+	"\x16AbortMultipartResponse\x12\x18\n" +
+	"\aaborted\x18\x01 \x01(\bR\aaborted\"O\n" +
+	"\x1bListMultipartUploadsRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x18\n" +
+	"\auploads\x18\x02 \x01(\bR\auploads\"\\\n" +
+	"\x1cListMultipartUploadsResponse\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12$\n" +
+	"\auploads\x18\x02 \x03(\v2\n" +
+	".s3.UploadR\auploads\"V\n" +
+	"\x06Upload\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1b\n" +
+	"\tupload_id\x18\x02 \x01(\tR\buploadId\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\tR\tcreatedAt\"Y\n" +
+	"\x10ListPartsRequest\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1b\n" +
+	"\tupload_id\x18\x03 \x01(\tR\buploadId\"t\n" +
+	"\n" +
+	"UploadPart\x12\x1f\n" +
+	"\vpart_number\x18\x01 \x01(\x05R\n" +
+	"partNumber\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\x12\x12\n" +
+	"\x04size\x18\x03 \x01(\x03R\x04size\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\"\x80\x01\n" +
+	"\x11ListPartsResponse\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1b\n" +
+	"\tupload_id\x18\x03 \x01(\tR\buploadId\x12$\n" +
+	"\x05parts\x18\x04 \x03(\v2\x0e.s3.UploadPartR\x05parts2\x84\x03\n" +
 	"\rBucketService\x12Z\n" +
 	"\fCreateBucket\x12\x17.s3.CreateBucketRequest\x1a\x18.s3.CreateBucketResponse\"\x17\x82\xd3\xe4\x93\x02\x11b\x06bucket\x1a\a/{name}\x12[\n" +
 	"\x0eListAllBuckets\x12\x19.s3.ListAllBucketsRequest\x1a\x1a.s3.ListAllBucketsResponse\"\x12\x82\xd3\xe4\x93\x02\fb\abuckets\x12\x01/\x12R\n" +
@@ -1370,7 +2293,7 @@ const file_services_proto_rawDesc = "" +
 	"\vAuthService\x12^\n" +
 	"\x10RegisterWithKeys\x12\x16.google.protobuf.Empty\x1a\x14.s3.RegisterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16b\x04keys\"\x0e/auth/register\x12}\n" +
 	"\x14RegisterWithPassword\x12\x1f.s3.RegisterWithPasswordRequest\x1a\x14.s3.RegisterResponse\".\x82\xd3\xe4\x93\x02(:\vcredentialsb\x04keys\"\x13/auth/register-pass\x12`\n" +
-	"\x11LoginWithPassword\x12\x10.s3.LoginRequest\x1a\x11.s3.LoginResponse\"&\x82\xd3\xe4\x93\x02 :\vcredentialsb\x04keys\"\v/auth/login2\xb1\x03\n" +
+	"\x11LoginWithPassword\x12\x10.s3.LoginRequest\x1a\x11.s3.LoginResponse\"&\x82\xd3\xe4\x93\x02 :\vcredentialsb\x04keys\"\v/auth/login2\x88\b\n" +
 	"\rObjectService\x12=\n" +
 	"\n" +
 	"LoadObject\x12\x15.s3.LoadObjectRequest\x1a\x16.s3.LoadObjectResponse\"\x00\x12P\n" +
@@ -1378,7 +2301,14 @@ const file_services_proto_rawDesc = "" +
 	"\vGetObjectMD\x12\x15.s3.ObjectInfoRequest\x1a\x16.s3.ObjectInfoResponse\"\x1f\x82\xd3\xe4\x93\x02\x19B\x17\n" +
 	"\x04HEAD\x12\x0f/{bucket}/{key}\x12Z\n" +
 	"\fDeleteObject\x12\x17.s3.DeleteObjectRequest\x1a\x18.s3.DeleteObjectResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/{bucket}/{key}\x12T\n" +
-	"\vListObjects\x12\x16.s3.ListObjectsRequest\x1a\x17.s3.ListObjectsResponse\"\x14\x82\xd3\xe4\x93\x02\x0eb\x01*\x12\t/{bucket}B-Z+github.com/lim-bo/barn/internal/services/pbb\x06proto3"
+	"\vListObjects\x12\x16.s3.ListObjectsRequest\x1a\x17.s3.ListObjectsResponse\"\x14\x82\xd3\xe4\x93\x02\x0eb\x01*\x12\t/{bucket}\x12e\n" +
+	"\rInitMultipart\x12\x18.s3.InitMultipartRequest\x1a\x19.s3.InitMultipartResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\"\x17/{bucket}/{key}:uploads\x12=\n" +
+	"\n" +
+	"UploadPart\x12\x15.s3.UploadPartRequest\x1a\x16.s3.UploadPartResponse\"\x00\x12r\n" +
+	"\x11CompleteMultipart\x12\x1c.s3.CompleteMultipartRequest\x1a\x1d.s3.CompleteMultipartResponse\" \x82\xd3\xe4\x93\x02\x1a\"\x18/{bucket}/{key}:complete\x12f\n" +
+	"\x0eAbortMultipart\x12\x19.s3.AbortMultipartRequest\x1a\x1a.s3.AbortMultipartResponse\"\x1d\x82\xd3\xe4\x93\x02\x17*\x15/{bucket}/{key}:abort\x12t\n" +
+	"\x14ListMultipartUploads\x12\x1f.s3.ListMultipartUploadsRequest\x1a .s3.ListMultipartUploadsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/{bucket}:uploads\x12]\n" +
+	"\tListParts\x12\x14.s3.ListPartsRequest\x1a\x15.s3.ListPartsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/{bucket}/{key}:uploadPartsB-Z+github.com/lim-bo/barn/internal/services/pbb\x06proto3"
 
 var (
 	file_services_proto_rawDescOnce sync.Once
@@ -1392,36 +2322,51 @@ func file_services_proto_rawDescGZIP() []byte {
 	return file_services_proto_rawDescData
 }
 
-var file_services_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_services_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_services_proto_goTypes = []any{
-	(*Bucket)(nil),                      // 0: s3.Bucket
-	(*UserCredentials)(nil),             // 1: s3.UserCredentials
-	(*Keys)(nil),                        // 2: s3.Keys
-	(*ObjectInfo)(nil),                  // 3: s3.ObjectInfo
-	(*CheckExistBucketRequest)(nil),     // 4: s3.CheckExistBucketRequest
-	(*CheckExistBucketResponse)(nil),    // 5: s3.CheckExistBucketResponse
-	(*ListAllBucketsRequest)(nil),       // 6: s3.ListAllBucketsRequest
-	(*ListAllBucketsResponse)(nil),      // 7: s3.ListAllBucketsResponse
-	(*CreateBucketRequest)(nil),         // 8: s3.CreateBucketRequest
-	(*CreateBucketResponse)(nil),        // 9: s3.CreateBucketResponse
-	(*DeleteBucketRequest)(nil),         // 10: s3.DeleteBucketRequest
-	(*DeleteBucketResponse)(nil),        // 11: s3.DeleteBucketResponse
-	(*RegisterWithPasswordRequest)(nil), // 12: s3.RegisterWithPasswordRequest
-	(*RegisterResponse)(nil),            // 13: s3.RegisterResponse
-	(*LoginRequest)(nil),                // 14: s3.LoginRequest
-	(*LoginResponse)(nil),               // 15: s3.LoginResponse
-	(*LoadObjectRequest)(nil),           // 16: s3.LoadObjectRequest
-	(*LoadObjectResponse)(nil),          // 17: s3.LoadObjectResponse
-	(*GetObjectRequest)(nil),            // 18: s3.GetObjectRequest
-	(*GetObjectResponse)(nil),           // 19: s3.GetObjectResponse
-	(*ObjectInfoRequest)(nil),           // 20: s3.ObjectInfoRequest
-	(*ObjectInfoResponse)(nil),          // 21: s3.ObjectInfoResponse
-	(*DeleteObjectRequest)(nil),         // 22: s3.DeleteObjectRequest
-	(*DeleteObjectResponse)(nil),        // 23: s3.DeleteObjectResponse
-	(*ListObjectsRequest)(nil),          // 24: s3.ListObjectsRequest
-	(*ListObjectsResponse)(nil),         // 25: s3.ListObjectsResponse
-	(*httpbody.HttpBody)(nil),           // 26: google.api.HttpBody
-	(*emptypb.Empty)(nil),               // 27: google.protobuf.Empty
+	(*Bucket)(nil),                       // 0: s3.Bucket
+	(*UserCredentials)(nil),              // 1: s3.UserCredentials
+	(*Keys)(nil),                         // 2: s3.Keys
+	(*ObjectInfo)(nil),                   // 3: s3.ObjectInfo
+	(*CheckExistBucketRequest)(nil),      // 4: s3.CheckExistBucketRequest
+	(*CheckExistBucketResponse)(nil),     // 5: s3.CheckExistBucketResponse
+	(*ListAllBucketsRequest)(nil),        // 6: s3.ListAllBucketsRequest
+	(*ListAllBucketsResponse)(nil),       // 7: s3.ListAllBucketsResponse
+	(*CreateBucketRequest)(nil),          // 8: s3.CreateBucketRequest
+	(*CreateBucketResponse)(nil),         // 9: s3.CreateBucketResponse
+	(*DeleteBucketRequest)(nil),          // 10: s3.DeleteBucketRequest
+	(*DeleteBucketResponse)(nil),         // 11: s3.DeleteBucketResponse
+	(*RegisterWithPasswordRequest)(nil),  // 12: s3.RegisterWithPasswordRequest
+	(*RegisterResponse)(nil),             // 13: s3.RegisterResponse
+	(*LoginRequest)(nil),                 // 14: s3.LoginRequest
+	(*LoginResponse)(nil),                // 15: s3.LoginResponse
+	(*LoadObjectRequest)(nil),            // 16: s3.LoadObjectRequest
+	(*LoadObjectResponse)(nil),           // 17: s3.LoadObjectResponse
+	(*GetObjectRequest)(nil),             // 18: s3.GetObjectRequest
+	(*GetObjectResponse)(nil),            // 19: s3.GetObjectResponse
+	(*ObjectInfoRequest)(nil),            // 20: s3.ObjectInfoRequest
+	(*ObjectInfoResponse)(nil),           // 21: s3.ObjectInfoResponse
+	(*DeleteObjectRequest)(nil),          // 22: s3.DeleteObjectRequest
+	(*DeleteObjectResponse)(nil),         // 23: s3.DeleteObjectResponse
+	(*ListObjectsRequest)(nil),           // 24: s3.ListObjectsRequest
+	(*ListObjectsResponse)(nil),          // 25: s3.ListObjectsResponse
+	(*InitMultipartRequest)(nil),         // 26: s3.InitMultipartRequest
+	(*InitMultipartResponse)(nil),        // 27: s3.InitMultipartResponse
+	(*UploadPartRequest)(nil),            // 28: s3.UploadPartRequest
+	(*UploadPartResponse)(nil),           // 29: s3.UploadPartResponse
+	(*CompleteMultipartRequest)(nil),     // 30: s3.CompleteMultipartRequest
+	(*CompletedPart)(nil),                // 31: s3.CompletedPart
+	(*CompleteMultipartResponse)(nil),    // 32: s3.CompleteMultipartResponse
+	(*AbortMultipartRequest)(nil),        // 33: s3.AbortMultipartRequest
+	(*AbortMultipartResponse)(nil),       // 34: s3.AbortMultipartResponse
+	(*ListMultipartUploadsRequest)(nil),  // 35: s3.ListMultipartUploadsRequest
+	(*ListMultipartUploadsResponse)(nil), // 36: s3.ListMultipartUploadsResponse
+	(*Upload)(nil),                       // 37: s3.Upload
+	(*ListPartsRequest)(nil),             // 38: s3.ListPartsRequest
+	(*UploadPart)(nil),                   // 39: s3.UploadPart
+	(*ListPartsResponse)(nil),            // 40: s3.ListPartsResponse
+	(*httpbody.HttpBody)(nil),            // 41: google.api.HttpBody
+	(*emptypb.Empty)(nil),                // 42: google.protobuf.Empty
 }
 var file_services_proto_depIdxs = []int32{
 	0,  // 0: s3.ListAllBucketsResponse.buckets:type_name -> s3.Bucket
@@ -1430,37 +2375,53 @@ var file_services_proto_depIdxs = []int32{
 	2,  // 3: s3.RegisterResponse.keys:type_name -> s3.Keys
 	1,  // 4: s3.LoginRequest.credentials:type_name -> s3.UserCredentials
 	2,  // 5: s3.LoginResponse.keys:type_name -> s3.Keys
-	26, // 6: s3.LoadObjectRequest.body:type_name -> google.api.HttpBody
+	41, // 6: s3.LoadObjectRequest.body:type_name -> google.api.HttpBody
 	3,  // 7: s3.ListObjectsResponse.content:type_name -> s3.ObjectInfo
-	8,  // 8: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
-	6,  // 9: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
-	10, // 10: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
-	4,  // 11: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
-	27, // 12: s3.AuthService.RegisterWithKeys:input_type -> google.protobuf.Empty
-	12, // 13: s3.AuthService.RegisterWithPassword:input_type -> s3.RegisterWithPasswordRequest
-	14, // 14: s3.AuthService.LoginWithPassword:input_type -> s3.LoginRequest
-	16, // 15: s3.ObjectService.LoadObject:input_type -> s3.LoadObjectRequest
-	18, // 16: s3.ObjectService.GetObject:input_type -> s3.GetObjectRequest
-	20, // 17: s3.ObjectService.GetObjectMD:input_type -> s3.ObjectInfoRequest
-	22, // 18: s3.ObjectService.DeleteObject:input_type -> s3.DeleteObjectRequest
-	24, // 19: s3.ObjectService.ListObjects:input_type -> s3.ListObjectsRequest
-	9,  // 20: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
-	7,  // 21: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
-	11, // 22: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
-	5,  // 23: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
-	13, // 24: s3.AuthService.RegisterWithKeys:output_type -> s3.RegisterResponse
-	13, // 25: s3.AuthService.RegisterWithPassword:output_type -> s3.RegisterResponse
-	15, // 26: s3.AuthService.LoginWithPassword:output_type -> s3.LoginResponse
-	17, // 27: s3.ObjectService.LoadObject:output_type -> s3.LoadObjectResponse
-	26, // 28: s3.ObjectService.GetObject:output_type -> google.api.HttpBody
-	21, // 29: s3.ObjectService.GetObjectMD:output_type -> s3.ObjectInfoResponse
-	23, // 30: s3.ObjectService.DeleteObject:output_type -> s3.DeleteObjectResponse
-	25, // 31: s3.ObjectService.ListObjects:output_type -> s3.ListObjectsResponse
-	20, // [20:32] is the sub-list for method output_type
-	8,  // [8:20] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	41, // 8: s3.UploadPartRequest.body:type_name -> google.api.HttpBody
+	31, // 9: s3.CompleteMultipartRequest.parts:type_name -> s3.CompletedPart
+	37, // 10: s3.ListMultipartUploadsResponse.uploads:type_name -> s3.Upload
+	39, // 11: s3.ListPartsResponse.parts:type_name -> s3.UploadPart
+	8,  // 12: s3.BucketService.CreateBucket:input_type -> s3.CreateBucketRequest
+	6,  // 13: s3.BucketService.ListAllBuckets:input_type -> s3.ListAllBucketsRequest
+	10, // 14: s3.BucketService.DeleteBucket:input_type -> s3.DeleteBucketRequest
+	4,  // 15: s3.BucketService.CheckExistBucket:input_type -> s3.CheckExistBucketRequest
+	42, // 16: s3.AuthService.RegisterWithKeys:input_type -> google.protobuf.Empty
+	12, // 17: s3.AuthService.RegisterWithPassword:input_type -> s3.RegisterWithPasswordRequest
+	14, // 18: s3.AuthService.LoginWithPassword:input_type -> s3.LoginRequest
+	16, // 19: s3.ObjectService.LoadObject:input_type -> s3.LoadObjectRequest
+	18, // 20: s3.ObjectService.GetObject:input_type -> s3.GetObjectRequest
+	20, // 21: s3.ObjectService.GetObjectMD:input_type -> s3.ObjectInfoRequest
+	22, // 22: s3.ObjectService.DeleteObject:input_type -> s3.DeleteObjectRequest
+	24, // 23: s3.ObjectService.ListObjects:input_type -> s3.ListObjectsRequest
+	26, // 24: s3.ObjectService.InitMultipart:input_type -> s3.InitMultipartRequest
+	28, // 25: s3.ObjectService.UploadPart:input_type -> s3.UploadPartRequest
+	30, // 26: s3.ObjectService.CompleteMultipart:input_type -> s3.CompleteMultipartRequest
+	33, // 27: s3.ObjectService.AbortMultipart:input_type -> s3.AbortMultipartRequest
+	35, // 28: s3.ObjectService.ListMultipartUploads:input_type -> s3.ListMultipartUploadsRequest
+	38, // 29: s3.ObjectService.ListParts:input_type -> s3.ListPartsRequest
+	9,  // 30: s3.BucketService.CreateBucket:output_type -> s3.CreateBucketResponse
+	7,  // 31: s3.BucketService.ListAllBuckets:output_type -> s3.ListAllBucketsResponse
+	11, // 32: s3.BucketService.DeleteBucket:output_type -> s3.DeleteBucketResponse
+	5,  // 33: s3.BucketService.CheckExistBucket:output_type -> s3.CheckExistBucketResponse
+	13, // 34: s3.AuthService.RegisterWithKeys:output_type -> s3.RegisterResponse
+	13, // 35: s3.AuthService.RegisterWithPassword:output_type -> s3.RegisterResponse
+	15, // 36: s3.AuthService.LoginWithPassword:output_type -> s3.LoginResponse
+	17, // 37: s3.ObjectService.LoadObject:output_type -> s3.LoadObjectResponse
+	41, // 38: s3.ObjectService.GetObject:output_type -> google.api.HttpBody
+	21, // 39: s3.ObjectService.GetObjectMD:output_type -> s3.ObjectInfoResponse
+	23, // 40: s3.ObjectService.DeleteObject:output_type -> s3.DeleteObjectResponse
+	25, // 41: s3.ObjectService.ListObjects:output_type -> s3.ListObjectsResponse
+	27, // 42: s3.ObjectService.InitMultipart:output_type -> s3.InitMultipartResponse
+	29, // 43: s3.ObjectService.UploadPart:output_type -> s3.UploadPartResponse
+	32, // 44: s3.ObjectService.CompleteMultipart:output_type -> s3.CompleteMultipartResponse
+	34, // 45: s3.ObjectService.AbortMultipart:output_type -> s3.AbortMultipartResponse
+	36, // 46: s3.ObjectService.ListMultipartUploads:output_type -> s3.ListMultipartUploadsResponse
+	40, // 47: s3.ObjectService.ListParts:output_type -> s3.ListPartsResponse
+	30, // [30:48] is the sub-list for method output_type
+	12, // [12:30] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_services_proto_init() }
@@ -1474,7 +2435,7 @@ func file_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_services_proto_rawDesc), len(file_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

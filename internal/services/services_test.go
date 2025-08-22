@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -189,7 +190,7 @@ func TestObjectService(t *testing.T) {
 	// Setting up listener and repository on testcontainer
 	lis := bufconn.Listen(bufSize)
 	cfg := setupTestDB(t)
-	br := repos.NewObjectsRepo(cfg)
+	or := repos.NewObjectsRepo(cfg)
 	oStorage := storage.NewLocalFS("../../data")
 
 	// Registering new server
@@ -197,7 +198,10 @@ func TestObjectService(t *testing.T) {
 		services.RequestIDInterceptor,
 		authInterceptorPlaceholder,
 		services.LoggerSettingInterceptor(slog.Default())))
-	os := services.NewObjectService(br, oStorage)
+	os := services.NewObjectService(services.ObjectServiceConfig{
+		ObjRepo:    or,
+		ObjStorage: oStorage,
+	})
 	pb.RegisterObjectServiceServer(s, os)
 
 	go func() {
@@ -220,10 +224,9 @@ func TestObjectService(t *testing.T) {
 	}
 	ctx := context.Background()
 	client := pb.NewObjectServiceClient(conn)
-
+	bStorage := storage.NewBucketLocalFS("../../data")
 	bucket := "test_bucket"
 	{
-		bStorage := storage.NewBucketLocalFS("../../data")
 		bStorage.CreateBucket(ctx, ownerID.String()+"_"+bucket)
 		bRepo := repos.NewBucketRepo(cfg)
 		_, err := bRepo.CreateBucket(ownerID, bucket)
@@ -313,6 +316,157 @@ func TestObjectService(t *testing.T) {
 			assert.True(t, o.Size == int64(objects[i+offset].Size))
 			assert.True(t, o.Key == keys[i+offset])
 		}
+	})
+	bStorage.DeleteBucket(ctx, bucket)
+}
+
+func TestObjectServiceMultipart(t *testing.T) {
+	t.Parallel()
+	// Setting up listener and repository on testcontainer
+	lis := bufconn.Listen(bufSize)
+	cfg := setupTestDB(t)
+	multStorage := storage.NewMultipartLocalFS("../../data")
+	multRepo := repos.NewMultipartRepo(cfg)
+	// Registering new server
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		services.RequestIDInterceptor,
+		authInterceptorPlaceholder,
+		services.LoggerSettingInterceptor(slog.Default())))
+	os := services.NewObjectService(services.ObjectServiceConfig{
+		MultipartRepo:    multRepo,
+		MultipartStorage: multStorage,
+	})
+	pb.RegisterObjectServiceServer(s, os)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	t.Cleanup(func() {
+		s.GracefulStop()
+	})
+
+	conn, err := grpc.NewClient("passthrough:///bufnet", grpc.WithContextDialer(
+		func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		},
+	), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	client := pb.NewObjectServiceClient(conn)
+
+	bucket := "test_bucket"
+	{
+		bStorage := storage.NewBucketLocalFS("../../data")
+		bStorage.CreateBucket(ctx, ownerID.String()+"_"+bucket)
+		bRepo := repos.NewBucketRepo(cfg)
+		_, err := bRepo.CreateBucket(ownerID, bucket)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	key := "big_file.data"
+	fileData := make([]byte, 128)
+	chunkSize := 32
+	chunkCount := len(fileData) / chunkSize
+	_, err = rand.Read(fileData)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var uploadID uuid.UUID
+	t.Run("Inited multipart upload", func(t *testing.T) {
+		resp, err := client.InitMultipart(ctx, &pb.InitMultipartRequest{
+			Bucket: bucket,
+			Key:    key,
+		})
+		assert.NoError(t, err)
+		uploadID = uuid.MustParse(resp.UploadId)
+	})
+	etags := make([]string, 0, chunkCount)
+	t.Run("Adding few parts", func(t *testing.T) {
+		for i := range chunkCount {
+			offset := i * chunkSize
+			resp, err := client.UploadPart(ctx, &pb.UploadPartRequest{
+				Bucket:     bucket,
+				Key:        key,
+				UploadId:   uploadID.String(),
+				PartNumber: int32(i),
+				Body: &httpbody.HttpBody{
+					ContentType: "application/octet-stream",
+					Data:        fileData[offset : offset+chunkSize],
+				}})
+			assert.NoError(t, err)
+			etags = append(etags, resp.Etag)
+		}
+	})
+	t.Run("Listing parts", func(t *testing.T) {
+		resp, err := client.ListParts(ctx, &pb.ListPartsRequest{
+			Bucket:   bucket,
+			Key:      key,
+			UploadId: uploadID.String(),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, bucket, resp.Bucket)
+		assert.Equal(t, key, resp.Key)
+		assert.Equal(t, uploadID.String(), resp.UploadId)
+		for i := range resp.Parts {
+			assert.Equal(t, etags[i], resp.Parts[i].Etag)
+			assert.EqualValues(t, i, resp.Parts[i].PartNumber)
+			assert.EqualValues(t, chunkSize, resp.Parts[i].Size)
+		}
+	})
+	t.Run("Completing upload", func(t *testing.T) {
+		reqParts := make([]*pb.CompletedPart, 0, chunkCount)
+		for i := range chunkCount {
+			reqParts = append(reqParts, &pb.CompletedPart{
+				PartNumber: int32(i),
+				Etag:       etags[i],
+			})
+		}
+		resp, err := client.CompleteMultipart(ctx, &pb.CompleteMultipartRequest{
+			Bucket:   bucket,
+			Key:      key,
+			UploadId: uploadID.String(),
+			Parts:    reqParts,
+		})
+		assert.NoError(t, err)
+		assert.EqualValues(t, chunkCount, resp.PartCount)
+		fmt.Printf("result etag: %s", resp.Etag)
+	})
+	var uploadIDAborted uuid.UUID
+	keyAborted := "big_file_to_abort.txt"
+	t.Run("Creating upload", func(t *testing.T) {
+		resp, err := client.InitMultipart(ctx, &pb.InitMultipartRequest{
+			Bucket: bucket,
+			Key:    keyAborted,
+		})
+		assert.NoError(t, err)
+		uploadIDAborted = uuid.MustParse(resp.UploadId)
+	})
+	t.Run("Aborting created upload", func(t *testing.T) {
+		_, err := client.AbortMultipart(ctx, &pb.AbortMultipartRequest{
+			Bucket:   bucket,
+			Key:      keyAborted,
+			UploadId: uploadIDAborted.String(),
+		})
+		assert.NoError(t, err)
+	})
+	t.Run("Listing uploads", func(t *testing.T) {
+		resp, err := client.ListMultipartUploads(ctx, &pb.ListMultipartUploadsRequest{
+			Bucket: bucket,
+		})
+		assert.NoError(t, err)
+		completed := resp.Uploads[0]
+		aborted := resp.Uploads[1]
+		assert.Equal(t, completed.Key, key)
+		assert.Equal(t, completed.UploadId, uploadID.String())
+		assert.Equal(t, aborted.Key, keyAborted)
+		assert.Equal(t, aborted.UploadId, uploadIDAborted.String())
 	})
 }
 
