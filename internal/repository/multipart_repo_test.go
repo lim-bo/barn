@@ -81,6 +81,9 @@ func TestChangeState(t *testing.T) {
 	updateQuery := regexp.QuoteMeta(`UPDATE multipart_uploads SET status = $1 WHERE upload_id = $2;`)
 	t.Run("-> completed: successful", func(t *testing.T) {
 		conn.ExpectBegin()
+		conn.ExpectQuery(regexp.QuoteMeta(`SELECT status FROM multipart_uploads WHERE upload_id = $1;`)).
+			WithArgs(uploadID).
+			WillReturnRows(pgxmock.NewRows([]string{"status"}).AddRow("inited"))
 		conn.ExpectExec(deleteQuery).
 			WithArgs(uploadID).
 			WillReturnResult(pgxmock.NewResult("DELETE", 10))
@@ -93,6 +96,9 @@ func TestChangeState(t *testing.T) {
 	})
 	t.Run("-> aborted: successful", func(t *testing.T) {
 		conn.ExpectBegin()
+		conn.ExpectQuery(regexp.QuoteMeta(`SELECT status FROM multipart_uploads WHERE upload_id = $1;`)).
+			WithArgs(uploadID).
+			WillReturnRows(pgxmock.NewRows([]string{"status"}).AddRow("inited"))
 		conn.ExpectExec(deleteQuery).
 			WithArgs(uploadID).
 			WillReturnResult(pgxmock.NewResult("DELETE", 10))
@@ -105,6 +111,9 @@ func TestChangeState(t *testing.T) {
 	})
 	t.Run("delete error", func(t *testing.T) {
 		conn.ExpectBegin()
+		conn.ExpectQuery(regexp.QuoteMeta(`SELECT status FROM multipart_uploads WHERE upload_id = $1;`)).
+			WithArgs(uploadID).
+			WillReturnRows(pgxmock.NewRows([]string{"status"}).AddRow("inited"))
 		conn.ExpectExec(deleteQuery).
 			WithArgs(uploadID).
 			WillReturnError(errors.New("db error"))
@@ -114,6 +123,9 @@ func TestChangeState(t *testing.T) {
 	})
 	t.Run("update error", func(t *testing.T) {
 		conn.ExpectBegin()
+		conn.ExpectQuery(regexp.QuoteMeta(`SELECT status FROM multipart_uploads WHERE upload_id = $1;`)).
+			WithArgs(uploadID).
+			WillReturnRows(pgxmock.NewRows([]string{"status"}).AddRow("inited"))
 		conn.ExpectExec(deleteQuery).
 			WithArgs(uploadID).
 			WillReturnResult(pgxmock.NewResult("DELETE", 10))

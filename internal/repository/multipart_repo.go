@@ -104,6 +104,17 @@ func (repo *MultipartRepository) ChangeUploadState(uploadID uuid.UUID, state str
 	}
 	defer tx.Rollback(ctx)
 
+	var status string
+	err = tx.QueryRow(ctx, `SELECT status FROM multipart_uploads WHERE upload_id = $1;`, uploadID).Scan(&status)
+	if err != nil {
+		return errors.New("getting status error: " + err.Error())
+	}
+	if status == services.MultipartStatusAborted {
+		return errvalues.ErrUploadAborted
+	}
+	if status == services.MultipartStatusCompleted {
+		return errvalues.ErrUploadCompleted
+	}
 	_, err = tx.Exec(ctx, `DELETE FROM multipart_parts WHERE upload_id = $1;`, uploadID)
 	if err != nil {
 		return errors.New("error deleting upload's parts: " + err.Error())
