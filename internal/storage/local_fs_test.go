@@ -90,7 +90,7 @@ func TestMultipartLocalFS(t *testing.T) {
 		}
 	})
 	t.Run("complete upload", func(t *testing.T) {
-		etag, err := lfs.CompleteUpload(ctx, storage.UploadMetadata{
+		etag, _, err := lfs.CompleteUpload(ctx, storage.UploadMetadata{
 			Bucket: bucket,
 			Key:    key,
 			ID:     uploadID,

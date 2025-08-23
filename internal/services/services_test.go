@@ -327,6 +327,7 @@ func TestObjectServiceMultipart(t *testing.T) {
 	cfg := setupTestDB(t)
 	multStorage := storage.NewMultipartLocalFS("../../data")
 	multRepo := repos.NewMultipartRepo(cfg)
+	objRepo := repos.NewObjectsRepo(cfg)
 	// Registering new server
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		services.RequestIDInterceptor,
@@ -335,6 +336,7 @@ func TestObjectServiceMultipart(t *testing.T) {
 	os := services.NewObjectService(services.ObjectServiceConfig{
 		MultipartRepo:    multRepo,
 		MultipartStorage: multStorage,
+		ObjRepo:          objRepo,
 	})
 	pb.RegisterObjectServiceServer(s, os)
 

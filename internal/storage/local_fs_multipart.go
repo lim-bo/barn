@@ -27,6 +27,11 @@ func NewMultipartLocalFS(uploadsRoot string) *MultipartLocalFS {
 	}
 }
 
+type fileMD struct {
+	etag string
+	size int64
+}
+
 func (mpfs *MultipartLocalFS) InitMultipartUpload(ctx context.Context) (uuid.UUID, error) {
 	uploadID := uuid.New()
 	path := filepath.Join(mpfs.root, uploadsDirName, uploadID.String())
@@ -55,30 +60,30 @@ func (mpfs *MultipartLocalFS) UploadPart(ctx context.Context, uploadID uuid.UUID
 	return generateEtag(content), nil
 }
 
-func (mpfs *MultipartLocalFS) CompleteUpload(ctx context.Context, upload UploadMetadata) (string, error) {
+func (mpfs *MultipartLocalFS) CompleteUpload(ctx context.Context, upload UploadMetadata) (string, int64, error) {
 	partsPath := filepath.Join(mpfs.root, uploadsDirName, upload.ID.String())
 	resultPath := filepath.Join(mpfs.root, upload.Bucket, upload.Key)
 	if err := os.MkdirAll(filepath.Dir(resultPath), 0755); err != nil {
-		return "", errors.New("creating multipart upload file destination: " + err.Error())
+		return "", 0, errors.New("creating multipart upload file destination: " + err.Error())
 	}
 	out, err := os.Create(resultPath)
 	if err != nil {
-		return "", errors.New("error creating result file: " + err.Error())
+		return "", 0, errors.New("error creating result file: " + err.Error())
 	}
 	defer out.Close()
 
-	resultEtag, count := getEtagAndCount(checkPart(
+	resultEtag, size, count := getEtagSizeCount(checkPart(
 		pushParts(upload.Parts),
 		partsPath,
 		out,
 	))
 	if err = os.RemoveAll(partsPath); err != nil {
-		return "", errors.New("error cleaning uploads dir: " + err.Error())
+		return "", 0, errors.New("error cleaning uploads dir: " + err.Error())
 	}
 	if count != len(upload.Parts) {
-		return "", errors.New("some parts are missing or haven't been writen")
+		return "", 0, errors.New("some parts are missing or haven't been writen")
 	}
-	return resultEtag, nil
+	return resultEtag, size, nil
 }
 
 func pushParts(parts []UploadedPart) <-chan UploadedPart {
@@ -92,8 +97,8 @@ func pushParts(parts []UploadedPart) <-chan UploadedPart {
 	return out
 }
 
-func checkPart(in <-chan UploadedPart, partsDir string, dst io.Writer) <-chan string {
-	out := make(chan string)
+func checkPart(in <-chan UploadedPart, partsDir string, dst io.Writer) <-chan fileMD {
+	out := make(chan fileMD)
 	go func() {
 		for p := range in {
 			path := filepath.Join(partsDir, fmt.Sprintf("%d.part", p.PartNumber))
@@ -102,7 +107,7 @@ func checkPart(in <-chan UploadedPart, partsDir string, dst io.Writer) <-chan st
 				continue
 			}
 			ph := md5.New()
-			_, err = io.Copy(io.MultiWriter(dst, ph), f)
+			size, err := io.Copy(io.MultiWriter(dst, ph), f)
 			if err != nil {
 				continue
 			}
@@ -111,21 +116,26 @@ func checkPart(in <-chan UploadedPart, partsDir string, dst io.Writer) <-chan st
 			if p.ETag != etag {
 				continue
 			}
-			out <- etag
+			out <- fileMD{
+				etag: etag,
+				size: size,
+			}
 		}
 		close(out)
 	}()
 	return out
 }
 
-func getEtagAndCount(in <-chan string) (string, int) {
+func getEtagSizeCount(in <-chan fileMD) (string, int64, int) {
 	cnt := 0
 	var resultEtag string
-	for etag := range in {
-		resultEtag += etag
+	var resultSize int64
+	for md := range in {
+		resultEtag += md.etag
+		resultSize += md.size
 		cnt++
 	}
-	return fmt.Sprintf("%s-%d", resultEtag, cnt), cnt
+	return fmt.Sprintf("%s-%d", resultEtag, cnt), resultSize, cnt
 }
 
 func (mpfs *MultipartLocalFS) AbortUpload(ctx context.Context, uploadID uuid.UUID) error {

@@ -127,7 +127,6 @@ func (repo *MultipartRepository) ChangeUploadState(uploadID uuid.UUID, state str
 	if ct.RowsAffected() == 0 {
 		return errvalues.ErrUnexistUpload
 	}
-
 	err = tx.Commit(ctx)
 	if err != nil {
 		return errors.New("commit error: " + err.Error())

@@ -41,7 +41,7 @@ type BucketStorage interface {
 type MultipartStorage interface {
 	InitMultipartUpload(ctx context.Context) (uuid.UUID, error)
 	UploadPart(ctx context.Context, uploadID uuid.UUID, partNumber int, data io.Reader) (string, error)
-	CompleteUpload(ctx context.Context, upload UploadMetadata) (string, error)
+	CompleteUpload(ctx context.Context, upload UploadMetadata) (string, int64, error)
 	AbortUpload(ctx context.Context, uploadID uuid.UUID) error
 }
 

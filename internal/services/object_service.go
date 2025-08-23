@@ -323,7 +323,7 @@ func (os *ObjectService) CompleteMultipart(ctx context.Context, req *pb.Complete
 			ETag:       p.Etag,
 		})
 	}
-	etag, err := os.multStorage.CompleteUpload(ctx, storage.UploadMetadata{
+	etag, size, err := os.multStorage.CompleteUpload(ctx, storage.UploadMetadata{
 		ID:     uploadID,
 		Bucket: ownerID.String() + "_" + req.Bucket,
 		Key:    req.Key,
@@ -345,6 +345,15 @@ func (os *ObjectService) CompleteMultipart(ctx context.Context, req *pb.Complete
 		}
 		slog.Error("error while completing upload", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to change upload state")
+	}
+	err = os.objRepo.SaveObject(ownerID, req.Bucket, &models.Object{
+		Key:  req.Key,
+		Etag: etag,
+		Size: uint64(size),
+	})
+	if err != nil {
+		logger.Error("error saving file info in db", slog.String("error", err.Error()))
+		return nil, status.Error(codes.Internal, "error saving object info")
 	}
 	return &pb.CompleteMultipartResponse{
 		Etag:      etag,
