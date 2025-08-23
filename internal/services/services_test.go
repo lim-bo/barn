@@ -328,6 +328,7 @@ func TestObjectServiceMultipart(t *testing.T) {
 	multStorage := storage.NewMultipartLocalFS("../../data")
 	multRepo := repos.NewMultipartRepo(cfg)
 	objRepo := repos.NewObjectsRepo(cfg)
+	objStorage := storage.NewLocalFS("../../data")
 	// Registering new server
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		services.RequestIDInterceptor,
@@ -337,6 +338,7 @@ func TestObjectServiceMultipart(t *testing.T) {
 		MultipartRepo:    multRepo,
 		MultipartStorage: multStorage,
 		ObjRepo:          objRepo,
+		ObjStorage:       objStorage,
 	})
 	pb.RegisterObjectServiceServer(s, os)
 
@@ -439,6 +441,14 @@ func TestObjectServiceMultipart(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, chunkCount, resp.PartCount)
 		fmt.Printf("result etag: %s", resp.Etag)
+	})
+	t.Run("getting file content", func(t *testing.T) {
+		resp, err := client.GetObject(ctx, &pb.GetObjectRequest{
+			Bucket: bucket,
+			Key:    key,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, fileData, resp.Data)
 	})
 	var uploadIDAborted uuid.UUID
 	keyAborted := "big_file_to_abort.txt"
