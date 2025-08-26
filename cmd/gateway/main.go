@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	gateway "github.com/lim-bo/barn/internal/gateway_additions"
 	"github.com/lim-bo/barn/internal/services/pb"
 	"github.com/lim-bo/barn/internal/settings"
 	"github.com/lim-bo/barn/pkg/cleanup"
@@ -20,7 +22,7 @@ import (
 
 func main() {
 	cfg := settings.GetConfig()
-
+	slog.SetLogLoggerLevel(slog.Level(cfg.GetInt("gateway.log_level")))
 	// Preparing mux
 	gwMux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(headerMatcher),
@@ -42,7 +44,8 @@ func main() {
 		},
 	})
 	objClient := pb.NewObjectServiceClient(conn)
-	gwMux.HandlePath(http.MethodPut, "/{bucket}/{key}", binaryRequestHandler(objClient))
+
+	mx := gateway.NewExtendedGWMux(objClient, gwMux)
 
 	// Registering services
 	opts := []grpc.DialOption{
@@ -90,12 +93,13 @@ func main() {
 		}
 	}()
 	wg.Wait()
-
 	// Running
 	addr := cfg.GetString("gateway.address")
 	server := &http.Server{
-		Addr:    addr,
-		Handler: CORSMiddleware(gwMux),
+		Addr: addr,
+		Handler: gateway.CORSMiddleware(
+			mx,
+		),
 	}
 
 	cleanup.Register(&cleanup.Job{

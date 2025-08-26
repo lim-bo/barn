@@ -192,12 +192,6 @@ service ObjectService {
 
 
     rpc InitMultipart(InitMultipartRequest) returns (InitMultipartResponse) {
-        option (google.api.http) = {
-            post: "/{bucket}/{key}"
-            additional_bindings: {
-                post: "/{bucket}/{key}?uploads"
-            }
-        };
     }
 
     rpc UploadPart(UploadPartRequest) returns (UploadPartResponse) {
@@ -205,33 +199,15 @@ service ObjectService {
     }
 
     rpc CompleteMultipart(CompleteMultipartRequest) returns (CompleteMultipartResponse) {
-        option (google.api.http) = {
-            post: "/{bucket}/{key}"
-        };
     }
 
     rpc AbortMultipart(AbortMultipartRequest) returns (AbortMultipartResponse) {
-        option (google.api.http) = {
-            delete: "/{bucket}/{key}"
-        };
     }
 
     rpc ListMultipartUploads(ListMultipartUploadsRequest) returns (ListMultipartUploadsResponse) {
-        option (google.api.http) = {
-            get: "/{bucket}"
-            additional_bindings: {
-                get: "/{bucket}?uploads"
-            }
-        };
     }
 
     rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
-        option (google.api.http) = {
-            get: "/{bucket}/{key}"
-            additional_bindings: {
-                get: "/{bucket}/{key}?uploadId={upload_id}"
-            }
-        };
     }
 }
 
