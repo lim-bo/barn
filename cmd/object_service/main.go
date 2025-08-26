@@ -23,7 +23,14 @@ func main() {
 	slog.SetLogLoggerLevel(slog.Level(cfg.GetInt("object_service.log_level")))
 
 	objStorageEngine := storage.NewLocalFS(cfg.GetString("storage.root"))
+	multStorageEngine := storage.NewMultipartLocalFS(cfg.GetString("storage.root"))
 	objRepository := repos.NewObjectsRepo(&repos.DBConfig{
+		Address:  cfg.GetString("postgres.address"),
+		User:     cfg.GetString("postgres.user"),
+		Password: cfg.GetString("postgres.password"),
+		DB:       cfg.GetString("postgres.db"),
+	})
+	multRepository := repos.NewMultipartRepo(&repos.DBConfig{
 		Address:  cfg.GetString("postgres.address"),
 		User:     cfg.GetString("postgres.user"),
 		Password: cfg.GetString("postgres.password"),
@@ -40,8 +47,10 @@ func main() {
 	sigValidator := services.NewSignatureValidator(usersRepo)
 
 	objService := services.NewObjectService(services.ObjectServiceConfig{
-		ObjRepo:    objRepository,
-		ObjStorage: objStorageEngine,
+		ObjRepo:          objRepository,
+		ObjStorage:       objStorageEngine,
+		MultipartRepo:    multRepository,
+		MultipartStorage: multStorageEngine,
 	})
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		services.RequestIDInterceptor,
