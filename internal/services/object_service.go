@@ -259,6 +259,7 @@ func (os *ObjectService) InitMultipart(ctx context.Context, req *pb.InitMultipar
 		logger.Error("failed to save new upload's metadata", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to save upload metadata")
 	}
+	logger.Info("multipart inited", slog.String("id", uploadID.String()))
 	return &pb.InitMultipartResponse{
 		UploadId: uploadID.String(),
 	}, nil
@@ -300,6 +301,7 @@ func (os *ObjectService) UploadPart(ctx context.Context, req *pb.UploadPartReque
 			return nil, status.Error(codes.Internal, "failed to upload part metadata")
 		}
 	}
+	logger.Info("part uploaded")
 	return &pb.UploadPartResponse{
 		Etag: etag,
 	}, nil
@@ -355,6 +357,7 @@ func (os *ObjectService) CompleteMultipart(ctx context.Context, req *pb.Complete
 		logger.Error("error saving file info in db", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "error saving object info")
 	}
+	logger.Info("multipart upload completed", slog.String("id", uploadID.String()))
 	return &pb.CompleteMultipartResponse{
 		Etag:      etag,
 		PartCount: int32(len(parts)),
@@ -385,6 +388,7 @@ func (os *ObjectService) AbortMultipart(ctx context.Context, req *pb.AbortMultip
 		slog.Error("error while aborting upload", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, "failed to change upload state")
 	}
+	logger.Info("upload aborted", slog.String("id", uploadID.String()))
 	return &pb.AbortMultipartResponse{
 		Aborted: true,
 	}, nil
@@ -410,6 +414,7 @@ func (os *ObjectService) ListMultipartUploads(ctx context.Context, req *pb.ListM
 			CreatedAt: u.CreatedAt.Format(time.RFC3339),
 		})
 	}
+	logger.Info("list of uploads provided")
 	return &pb.ListMultipartUploadsResponse{
 		Bucket:  req.Bucket,
 		Uploads: resultUploads,
@@ -436,6 +441,7 @@ func (os *ObjectService) ListParts(ctx context.Context, req *pb.ListPartsRequest
 			CreatedAt:  p.CreatedAt.Format(time.RFC3339),
 		})
 	}
+	logger.Info("list of upload parts provided", slog.String("id", uploadID.String()))
 	return &pb.ListPartsResponse{
 		Bucket:   req.Bucket,
 		Key:      req.Key,
