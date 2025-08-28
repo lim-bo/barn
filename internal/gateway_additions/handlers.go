@@ -70,7 +70,7 @@ func (m *ExtendedGWMux) initMultipartHandler(w http.ResponseWriter, r *http.Requ
 		Key:    key,
 	})
 	if err != nil {
-		http.Error(w, "error creating multipart upload", http.StatusInternalServerError)
+		gRPCError(w, err)
 		return
 	}
 	_ = json.NewEncoder(w).Encode(map[string]any{
@@ -125,7 +125,7 @@ func (m *ExtendedGWMux) completeMultipart(w http.ResponseWriter, r *http.Request
 		Parts:    parts,
 	})
 	if err != nil {
-		http.Error(w, "error compliting multipart: "+err.Error(), http.StatusInternalServerError)
+		gRPCError(w, err)
 		return
 	}
 	_ = json.NewEncoder(w).Encode(map[string]any{
@@ -160,7 +160,7 @@ func (m *ExtendedGWMux) listUploadParts(w http.ResponseWriter, r *http.Request) 
 		UploadId: uploadID,
 	})
 	if err != nil {
-		http.Error(w, "error getting parts: "+err.Error(), http.StatusInternalServerError)
+		gRPCError(w, err)
 		return
 	}
 	var PartsListResponse struct {
@@ -217,7 +217,7 @@ func (m *ExtendedGWMux) listUploads(w http.ResponseWriter, r *http.Request) {
 		Bucket: bucket,
 	})
 	if err != nil {
-		http.Error(w, "error getting uploads: "+err.Error(), http.StatusInternalServerError)
+		gRPCError(w, err)
 		return
 	}
 	var ListUploadsResponse struct {
@@ -287,7 +287,7 @@ func (m *ExtendedGWMux) uploadPartHandler(w http.ResponseWriter, r *http.Request
 		},
 	})
 	if err != nil {
-		http.Error(w, "failed to add upload part", http.StatusInternalServerError)
+		gRPCError(w, err)
 		return
 	}
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
@@ -329,7 +329,7 @@ func (m *ExtendedGWMux) putObjectHandler(w http.ResponseWriter, r *http.Request)
 		},
 	})
 	if err != nil {
-		http.Error(w, "failed to save object", http.StatusBadGateway)
+		gRPCError(w, err)
 		return
 	}
 	_ = json.NewEncoder(w).Encode(map[string]any{
